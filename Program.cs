@@ -16,7 +16,9 @@ builder.Services.AddCors(options =>
 });
 
 // Add PostgreSQL Database
-var connectionString = "Host=localhost;Port=5432;Database=auradb;Username=aura;Password=aura123";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? "Host=localhost;Port=5432;Database=auradb;Username=aura;Password=aura123";
+
 builder.Services.AddDbContext<AuraDbContext>(options =>
     options.UseNpgsql(connectionString));
 
