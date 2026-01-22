@@ -22,18 +22,34 @@ string connectionString;
 if (!string.IsNullOrEmpty(databaseUrl) && databaseUrl.StartsWith("postgresql://"))
 {
     // Parse Neon style DATABASE_URL: postgresql://user:password@host/database?sslmode=require
-    // Remove query string before parsing
     var urlWithoutQuery = databaseUrl.Split('?')[0];
     var uri = new Uri(urlWithoutQuery);
-    var userInfo = uri.UserInfo.Split(':');
     var database = uri.AbsolutePath.TrimStart('/');
 
-    connectionString = $"Host={uri.Host};Database={database};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    // Safely parse user info
+    var username = "";
+    var password = "";
+    if (!string.IsNullOrEmpty(uri.UserInfo))
+    {
+        var colonIndex = uri.UserInfo.IndexOf(':');
+        if (colonIndex > 0)
+        {
+            username = Uri.UnescapeDataString(uri.UserInfo.Substring(0, colonIndex));
+            password = Uri.UnescapeDataString(uri.UserInfo.Substring(colonIndex + 1));
+        }
+        else
+        {
+            username = Uri.UnescapeDataString(uri.UserInfo);
+        }
+    }
+
+    connectionString = $"Host={uri.Host};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+    Console.WriteLine($"Connecting to: {uri.Host}/{database} as {username}");
 }
 else
 {
-    // Fallback for local development
     connectionString = "Host=localhost;Port=5432;Database=auradb;Username=aura;Password=aura123";
+    Console.WriteLine("Using local database");
 }
 
 builder.Services.AddDbContext<AuraDbContext>(options =>
