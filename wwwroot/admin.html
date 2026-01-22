@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - AURA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+        }
+
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .gold { color: #d4af37; }
+        .bg-gold { background: #d4af37; }
+        .border-gold { border-color: rgba(212, 175, 55, 0.3); }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            background: rgba(255, 0, 0, 0.3);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: rgba(0, 200, 100, 0.5);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 25px;
+        }
+
+        .slot-chip {
+            transition: all 0.2s;
+        }
+
+        .slot-chip:hover {
+            transform: scale(1.05);
+        }
+
+        .slot-chip.disabled {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+
+        .modal-overlay {
+            backdrop-filter: blur(8px);
+        }
+
+        input[type="time"], input[type="date"], input[type="text"], select {
+            color-scheme: dark;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-stone-300">
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black/90 modal-overlay flex items-center justify-center z-50">
+        <div class="bg-stone-900 border border-stone-700 p-10 w-full max-w-md">
+            <h2 class="text-3xl gold text-center mb-2 font-light tracking-widest">ADMIN</h2>
+            <p class="text-center text-stone-500 mb-8 text-sm">Prijavite se za pristup</p>
+            <form id="loginForm" class="space-y-4">
+                <input type="email" id="loginEmail" placeholder="Email" required
+                    class="w-full p-4 bg-stone-800 border border-stone-700 text-stone-200 focus:border-amber-500 outline-none">
+                <input type="password" id="loginPassword" placeholder="Lozinka" required
+                    class="w-full p-4 bg-stone-800 border border-stone-700 text-stone-200 focus:border-amber-500 outline-none">
+                <div id="loginError" class="text-red-400 text-sm hidden"></div>
+                <button type="submit" class="w-full p-4 bg-gold text-black font-medium tracking-widest hover:bg-amber-400 transition">
+                    PRIJAVA
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="hidden">
+        <!-- Header -->
+        <header class="border-b border-stone-800 p-6">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl gold tracking-[0.3em] font-light">AURA</h1>
+                    <p class="text-stone-500 text-xs tracking-widest mt-1">ADMIN PANEL</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="loadAllData()" class="px-5 py-2 border border-stone-600 text-stone-400 hover:border-amber-500 hover:text-amber-500 transition text-sm tracking-wider">
+                        OSVJEŽI
+                    </button>
+                    <button onclick="logout()" class="px-5 py-2 border border-red-900 text-red-400 hover:bg-red-900/30 transition text-sm tracking-wider">
+                        ODJAVA
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto p-6">
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-stone-900/50 border border-stone-800 p-6 text-center">
+                    <div id="totalReservations" class="text-4xl gold font-light">0</div>
+                    <div class="text-stone-500 text-xs tracking-widest mt-2">REZERVACIJA</div>
+                </div>
+                <div class="bg-stone-900/50 border border-stone-800 p-6 text-center">
+                    <div id="totalOrders" class="text-4xl gold font-light">0</div>
+                    <div class="text-stone-500 text-xs tracking-widest mt-2">NARUDŽBI</div>
+                </div>
+                <div class="bg-stone-900/50 border border-stone-800 p-6 text-center">
+                    <div id="upcomingReservations" class="text-4xl gold font-light">0</div>
+                    <div class="text-stone-500 text-xs tracking-widest mt-2">NADOLAZEĆE</div>
+                </div>
+                <div class="bg-stone-900/50 border border-stone-800 p-6 text-center">
+                    <div id="totalUsers" class="text-4xl gold font-light">0</div>
+                    <div class="text-stone-500 text-xs tracking-widest mt-2">KORISNIKA</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex gap-2 mb-6 border-b border-stone-800 pb-4 flex-wrap">
+                <button onclick="switchTab('reservations')" data-tab="reservations"
+                    class="tab-btn px-6 py-3 text-sm tracking-wider border border-stone-700 text-stone-400 hover:border-amber-500 transition active">
+                    REZERVACIJE
+                </button>
+                <button onclick="switchTab('orders')" data-tab="orders"
+                    class="tab-btn px-6 py-3 text-sm tracking-wider border border-stone-700 text-stone-400 hover:border-amber-500 transition">
+                    NARUDŽBE
+                </button>
+                <button onclick="switchTab('schedule')" data-tab="schedule"
+                    class="tab-btn px-6 py-3 text-sm tracking-wider border border-stone-700 text-stone-400 hover:border-amber-500 transition">
+                    RASPORED
+                </button>
+                <button onclick="switchTab('overrides')" data-tab="overrides"
+                    class="tab-btn px-6 py-3 text-sm tracking-wider border border-stone-700 text-stone-400 hover:border-amber-500 transition">
+                    POSEBNI DATUMI
+                </button>
+                <button onclick="switchTab('users')" data-tab="users"
+                    class="tab-btn px-6 py-3 text-sm tracking-wider border border-stone-700 text-stone-400 hover:border-amber-500 transition">
+                    KORISNICI
+                </button>
+            </div>
+
+            <!-- Reservations Tab -->
+            <div id="reservationsTab" class="tab-content">
+                <div id="reservationsLoading" class="text-center py-12 text-stone-500">Učitavanje...</div>
+                <div id="reservationsEmpty" class="hidden text-center py-12 text-stone-600">Nema rezervacija</div>
+                <div id="reservationsTable" class="hidden overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-stone-800/50">
+                            <tr class="text-left text-xs tracking-wider text-stone-500">
+                                <th class="p-4">DATUM</th>
+                                <th class="p-4">VRIJEME</th>
+                                <th class="p-4">IME</th>
+                                <th class="p-4">EMAIL</th>
+                                <th class="p-4">TELEFON</th>
+                                <th class="p-4">OSOBE</th>
+                                <th class="p-4">NAPOMENA</th>
+                                <th class="p-4">AKCIJA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reservationsBody" class="divide-y divide-stone-800"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="ordersTab" class="tab-content hidden">
+                <div id="ordersLoading" class="text-center py-12 text-stone-500">Učitavanje...</div>
+                <div id="ordersEmpty" class="hidden text-center py-12 text-stone-600">Nema narudžbi</div>
+                <div id="ordersTable" class="hidden overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-stone-800/50">
+                            <tr class="text-left text-xs tracking-wider text-stone-500">
+                                <th class="p-4">ID</th>
+                                <th class="p-4">DATUM</th>
+                                <th class="p-4">IME</th>
+                                <th class="p-4">ADRESA</th>
+                                <th class="p-4">TELEFON</th>
+                                <th class="p-4">ARTIKLI</th>
+                                <th class="p-4">UKUPNO</th>
+                                <th class="p-4">STATUS</th>
+                                <th class="p-4">AKCIJA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersBody" class="divide-y divide-stone-800"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Schedule Tab -->
+            <div id="scheduleTab" class="tab-content hidden">
+                <div class="bg-stone-900/50 border border-stone-800 p-6">
+                    <h3 class="text-lg gold mb-6 tracking-wider">TJEDNI RASPORED</h3>
+                    <div id="weeklySchedule" class="space-y-4">
+                        <div class="text-center py-8 text-stone-500">Učitavanje...</div>
+                    </div>
+                    <button onclick="saveWeeklySchedule()" id="saveScheduleBtn" disabled
+                        class="mt-6 px-8 py-3 bg-gold text-black font-medium tracking-wider hover:bg-amber-400 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        SPREMI PROMJENE
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overrides Tab -->
+            <div id="overridesTab" class="tab-content hidden">
+                <div class="bg-stone-900/50 border border-stone-800 p-6 mb-6">
+                    <h3 class="text-lg gold mb-6 tracking-wider">DODAJ POSEBNI DATUM</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs text-stone-500 mb-2 tracking-wider">DATUM</label>
+                            <input type="date" id="overrideDate" class="w-full p-3 bg-stone-800 border border-stone-700 text-stone-200">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-stone-500 mb-2 tracking-wider">STATUS</label>
+                            <select id="overrideStatus" class="w-full p-3 bg-stone-800 border border-stone-700 text-stone-200" onchange="toggleOverrideTimeInputs()">
+                                <option value="closed">Zatvoreno cijeli dan</option>
+                                <option value="modified">Skraćeno radno vrijeme</option>
+                            </select>
+                        </div>
+                        <div id="overrideTimeGroup" class="hidden">
+                            <label class="block text-xs text-stone-500 mb-2 tracking-wider">RADNO VRIJEME</label>
+                            <div class="flex gap-2">
+                                <input type="time" id="overrideOpenTime" value="12:00" class="flex-1 p-3 bg-stone-800 border border-stone-700 text-stone-200">
+                                <span class="p-3 text-stone-500">-</span>
+                                <input type="time" id="overrideCloseTime" value="18:00" class="flex-1 p-3 bg-stone-800 border border-stone-700 text-stone-200">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-stone-500 mb-2 tracking-wider">RAZLOG</label>
+                            <input type="text" id="overrideReason" placeholder="npr. Božić, Privatna zabava"
+                                class="w-full p-3 bg-stone-800 border border-stone-700 text-stone-200">
+                        </div>
+                    </div>
+                    <button onclick="addDateOverride()" class="mt-4 px-6 py-3 bg-gold text-black font-medium tracking-wider hover:bg-amber-400 transition">
+                        DODAJ
+                    </button>
+                </div>
+
+                <div class="bg-stone-900/50 border border-stone-800 p-6">
+                    <h3 class="text-lg gold mb-6 tracking-wider">POSEBNI DATUMI</h3>
+                    <div id="overridesList" class="space-y-3">
+                        <div class="text-center py-8 text-stone-600">Nema posebnih datuma</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="usersTab" class="tab-content hidden">
+                <div id="usersLoading" class="text-center py-12 text-stone-500">Učitavanje...</div>
+                <div id="usersEmpty" class="hidden text-center py-12 text-stone-600">Nema korisnika</div>
+                <div id="usersTable" class="hidden overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-stone-800/50">
+                            <tr class="text-left text-xs tracking-wider text-stone-500">
+                                <th class="p-4">ID</th>
+                                <th class="p-4">IME</th>
+                                <th class="p-4">EMAIL</th>
+                                <th class="p-4">TELEFON</th>
+                                <th class="p-4">REGISTRIRAN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersBody" class="divide-y divide-stone-800"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let adminToken = null;
+        const dayNames = ['Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', 'Petak', 'Subota', 'Nedjelja'];
+        let weeklyScheduleData = [];
+        let scheduleChanged = false;
+
+        // ============= AUTH =============
+        document.addEventListener('DOMContentLoaded', () => {
+            localStorage.removeItem('adminToken');
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorEl = document.getElementById('loginError');
+            errorEl.classList.add('hidden');
+
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('/api/auth/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    adminToken = data.token;
+                    document.getElementById('loginModal').classList.add('hidden');
+                    document.getElementById('mainContent').classList.remove('hidden');
+                    loadAllData();
+                } else {
+                    errorEl.textContent = data.error || 'Pogrešna prijava';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch {
+                errorEl.textContent = 'Greška pri povezivanju';
+                errorEl.classList.remove('hidden');
+            }
+        });
+
+        function logout() {
+            adminToken = null;
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        // ============= TABS =============
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-amber-500', 'text-amber-500');
+                btn.classList.add('border-stone-700', 'text-stone-400');
+            });
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active', 'border-amber-500', 'text-amber-500');
+            document.querySelector(`[data-tab="${tab}"]`).classList.remove('border-stone-700', 'text-stone-400');
+
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+            document.getElementById(`${tab}Tab`).classList.remove('hidden');
+
+            if (tab === 'schedule') loadSchedule();
+            if (tab === 'overrides') loadDateOverrides();
+            if (tab === 'orders') loadOrders();
+        }
+
+        // ============= DATA LOADING =============
+        async function loadAllData() {
+            await Promise.all([loadReservations(), loadUsers(), loadOrders()]);
+        }
+
+        async function loadReservations() {
+            const loading = document.getElementById('reservationsLoading');
+            const empty = document.getElementById('reservationsEmpty');
+            const table = document.getElementById('reservationsTable');
+            const tbody = document.getElementById('reservationsBody');
+
+            loading.classList.remove('hidden');
+            empty.classList.add('hidden');
+            table.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/reservations', {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (response.status === 401) { logout(); return; }
+
+                const reservations = await response.json();
+                loading.classList.add('hidden');
+
+                const today = new Date().toISOString().split('T')[0];
+                const upcomingCount = reservations.filter(r => r.date >= today).length;
+
+                document.getElementById('totalReservations').textContent = reservations.length;
+                document.getElementById('upcomingReservations').textContent = upcomingCount;
+
+                if (reservations.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+
+                tbody.innerHTML = reservations.map(r => `
+                    <tr class="hover:bg-stone-800/30">
+                        <td class="p-4">${new Date(r.date).toLocaleDateString('hr-HR')}</td>
+                        <td class="p-4 gold font-medium">${r.time}</td>
+                        <td class="p-4">${r.user?.name || '-'}</td>
+                        <td class="p-4 text-stone-400">${r.user?.email || '-'}</td>
+                        <td class="p-4 text-stone-400">${r.user?.phone || '-'}</td>
+                        <td class="p-4">${r.guests}</td>
+                        <td class="p-4 text-stone-500 text-sm">${r.specialRequests || '-'}</td>
+                        <td class="p-4">
+                            <button onclick="deleteReservation(${r.id})"
+                                class="px-3 py-1 border border-red-900 text-red-400 text-xs hover:bg-red-900/30 transition">
+                                OBRIŠI
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                table.classList.remove('hidden');
+            } catch (error) {
+                loading.classList.add('hidden');
+                console.error(error);
+            }
+        }
+
+        async function loadUsers() {
+            const loading = document.getElementById('usersLoading');
+            const empty = document.getElementById('usersEmpty');
+            const table = document.getElementById('usersTable');
+            const tbody = document.getElementById('usersBody');
+
+            loading.classList.remove('hidden');
+            empty.classList.add('hidden');
+            table.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/users', {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (response.status === 401) { logout(); return; }
+
+                const users = await response.json();
+                loading.classList.add('hidden');
+
+                document.getElementById('totalUsers').textContent = users.length;
+
+                if (users.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+
+                tbody.innerHTML = users.map(u => `
+                    <tr class="hover:bg-stone-800/30">
+                        <td class="p-4 text-stone-500">${u.id}</td>
+                        <td class="p-4">${u.name}</td>
+                        <td class="p-4 text-stone-400">${u.email}</td>
+                        <td class="p-4 text-stone-400">${u.phone || '-'}</td>
+                        <td class="p-4 text-stone-500">${new Date(u.createdAt).toLocaleDateString('hr-HR')}</td>
+                    </tr>
+                `).join('');
+
+                table.classList.remove('hidden');
+            } catch (error) {
+                loading.classList.add('hidden');
+                console.error(error);
+            }
+        }
+
+        async function deleteReservation(id) {
+            if (!confirm('Obrisati ovu rezervaciju?')) return;
+
+            try {
+                const response = await fetch(`/api/reservations/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (response.status === 401) { logout(); return; }
+                if (response.ok) loadReservations();
+            } catch (error) {
+                alert('Greška pri brisanju');
+            }
+        }
+
+        // ============= ORDERS =============
+        const orderStatusLabels = {
+            'Pending': { text: 'NA ČEKANJU', class: 'bg-amber-900/30 text-amber-400' },
+            'Confirmed': { text: 'POTVRĐENO', class: 'bg-blue-900/30 text-blue-400' },
+            'Preparing': { text: 'PRIPREMA', class: 'bg-purple-900/30 text-purple-400' },
+            'OutForDelivery': { text: 'DOSTAVA', class: 'bg-cyan-900/30 text-cyan-400' },
+            'Delivered': { text: 'DOSTAVLJENO', class: 'bg-green-900/30 text-green-400' },
+            'Cancelled': { text: 'OTKAZANO', class: 'bg-red-900/30 text-red-400' }
+        };
+
+        async function loadOrders() {
+            const loading = document.getElementById('ordersLoading');
+            const empty = document.getElementById('ordersEmpty');
+            const table = document.getElementById('ordersTable');
+            const tbody = document.getElementById('ordersBody');
+
+            loading.classList.remove('hidden');
+            empty.classList.add('hidden');
+            table.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/orders', {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (response.status === 401) { logout(); return; }
+
+                const orders = await response.json();
+                loading.classList.add('hidden');
+
+                document.getElementById('totalOrders').textContent = orders.length;
+
+                if (orders.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+
+                tbody.innerHTML = orders.map(o => {
+                    const status = orderStatusLabels[o.status] || { text: o.status, class: 'bg-stone-700 text-stone-300' };
+                    const itemsList = o.items.map(i => `${i.quantity}x ${i.menuItemName}`).join(', ');
+
+                    const customerName = o.user?.name || o.customerName || '-';
+                    const isGuest = !o.userId;
+
+                    return `
+                        <tr class="hover:bg-stone-800/30">
+                            <td class="p-4 text-stone-500">#${o.id}</td>
+                            <td class="p-4">${new Date(o.createdAt).toLocaleString('hr-HR')}</td>
+                            <td class="p-4">${customerName}${isGuest ? ' <span class="text-xs text-stone-500">(gost)</span>' : ''}</td>
+                            <td class="p-4 text-stone-400 text-sm">${o.deliveryAddress}${o.deliveryCity ? ', ' + o.deliveryCity : ''}</td>
+                            <td class="p-4 text-stone-400">${o.phone || '-'}</td>
+                            <td class="p-4 text-sm text-stone-400 max-w-xs truncate" title="${itemsList}">${itemsList}</td>
+                            <td class="p-4 gold font-medium">${o.totalAmount.toFixed(2)} EUR</td>
+                            <td class="p-4">
+                                <select onchange="updateOrderStatus(${o.id}, this.value)"
+                                    class="px-2 py-1 text-xs ${status.class} border-0 cursor-pointer">
+                                    <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>NA ČEKANJU</option>
+                                    <option value="Confirmed" ${o.status === 'Confirmed' ? 'selected' : ''}>POTVRĐENO</option>
+                                    <option value="Preparing" ${o.status === 'Preparing' ? 'selected' : ''}>PRIPREMA</option>
+                                    <option value="OutForDelivery" ${o.status === 'OutForDelivery' ? 'selected' : ''}>DOSTAVA</option>
+                                    <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>DOSTAVLJENO</option>
+                                    <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>OTKAZANO</option>
+                                </select>
+                            </td>
+                            <td class="p-4">
+                                <button onclick="deleteOrder(${o.id})"
+                                    class="px-3 py-1 border border-red-900 text-red-400 text-xs hover:bg-red-900/30 transition">
+                                    OBRIŠI
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                table.classList.remove('hidden');
+            } catch (error) {
+                loading.classList.add('hidden');
+                console.error(error);
+            }
+        }
+
+        async function updateOrderStatus(id, status) {
+            try {
+                const response = await fetch(`/api/orders/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({ status: parseInt(getStatusValue(status)) })
+                });
+
+                if (response.status === 401) { logout(); return; }
+                if (response.ok) loadOrders();
+            } catch (error) {
+                alert('Greška pri ažuriranju statusa');
+            }
+        }
+
+        function getStatusValue(status) {
+            const values = { 'Pending': 0, 'Confirmed': 1, 'Preparing': 2, 'OutForDelivery': 3, 'Delivered': 4, 'Cancelled': 5 };
+            return values[status] || 0;
+        }
+
+        async function deleteOrder(id) {
+            if (!confirm('Obrisati ovu narudžbu?')) return;
+
+            try {
+                const response = await fetch(`/api/orders/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (response.status === 401) { logout(); return; }
+                if (response.ok) loadOrders();
+            } catch (error) {
+                alert('Greška pri brisanju');
+            }
+        }
+
+        // ============= SCHEDULE =============
+        async function loadSchedule() {
+            const container = document.getElementById('weeklySchedule');
+            container.innerHTML = '<div class="text-center py-8 text-stone-500">Učitavanje...</div>';
+
+            try {
+                const response = await fetch('/api/schedule');
+                if (!response.ok) throw new Error();
+
+                weeklyScheduleData = await response.json();
+                renderWeeklySchedule();
+            } catch {
+                container.innerHTML = '<div class="text-center py-8 text-red-400">Greška pri učitavanju</div>';
+            }
+        }
+
+        function renderWeeklySchedule() {
+            const container = document.getElementById('weeklySchedule');
+            container.innerHTML = '';
+
+            weeklyScheduleData.forEach((day, index) => {
+                const slots = day.timeSlots || [];
+                const allSlots = ['12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'];
+
+                const row = document.createElement('div');
+                row.className = 'border border-stone-800 p-4';
+                row.innerHTML = `
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-28 font-medium">${dayNames[index]}</div>
+                        <div class="toggle-switch ${day.isOpen ? 'active' : ''}" onclick="toggleDay(${index})"></div>
+                        <div class="flex items-center gap-2 ${!day.isOpen ? 'opacity-30' : ''}">
+                            <input type="time" value="${day.openTime || '12:00'}"
+                                onchange="updateDayTime(${index}, 'open', this.value)"
+                                ${!day.isOpen ? 'disabled' : ''}
+                                class="p-2 bg-stone-800 border border-stone-700 text-stone-200 text-sm">
+                            <span class="text-stone-500">-</span>
+                            <input type="time" value="${day.closeTime || '23:00'}"
+                                onchange="updateDayTime(${index}, 'close', this.value)"
+                                ${!day.isOpen ? 'disabled' : ''}
+                                class="p-2 bg-stone-800 border border-stone-700 text-stone-200 text-sm">
+                        </div>
+                        <div class="text-sm ${day.isOpen ? 'text-green-400' : 'text-red-400'}">
+                            ${day.isOpen ? 'OTVORENO' : 'ZATVORENO'}
+                        </div>
+                    </div>
+                    ${day.isOpen ? `
+                        <div class="flex flex-wrap gap-2 ml-32">
+                            ${allSlots.map(time => {
+                                const slot = slots.find(s => s.time === time);
+                                const isEnabled = slot !== undefined;
+                                return `
+                                    <button onclick="toggleSlot(${index}, '${time}')"
+                                        class="slot-chip px-3 py-1 text-sm border ${isEnabled
+                                            ? 'border-green-700 bg-green-900/30 text-green-400'
+                                            : 'border-stone-700 bg-stone-800/50 text-stone-500 disabled'}">
+                                        ${time}
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                    ` : ''}
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function toggleDay(index) {
+            weeklyScheduleData[index].isOpen = !weeklyScheduleData[index].isOpen;
+            scheduleChanged = true;
+            document.getElementById('saveScheduleBtn').disabled = false;
+            renderWeeklySchedule();
+        }
+
+        function updateDayTime(index, type, value) {
+            if (type === 'open') {
+                weeklyScheduleData[index].openTime = value;
+            } else {
+                weeklyScheduleData[index].closeTime = value;
+            }
+            scheduleChanged = true;
+            document.getElementById('saveScheduleBtn').disabled = false;
+        }
+
+        async function toggleSlot(dayIndex, time) {
+            const day = weeklyScheduleData[dayIndex];
+            const slots = day.timeSlots || [];
+            const existingIndex = slots.findIndex(s => s.time === time);
+
+            try {
+                const response = await fetch(`/api/admin/schedule/${dayIndex}/slots`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({
+                        time: time,
+                        maxReservations: 1,
+                        isEnabled: existingIndex === -1
+                    })
+                });
+
+                if (response.status === 401) { logout(); return; }
+                if (response.ok) loadSchedule();
+            } catch {
+                alert('Greška pri ažuriranju slota');
+            }
+        }
+
+        async function saveWeeklySchedule() {
+            const btn = document.getElementById('saveScheduleBtn');
+            btn.disabled = true;
+            btn.textContent = 'SPREMANJE...';
+
+            try {
+                for (let i = 0; i < weeklyScheduleData.length; i++) {
+                    const day = weeklyScheduleData[i];
+                    const response = await fetch(`/api/admin/schedule/${i}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${adminToken}`
+                        },
+                        body: JSON.stringify({
+                            isOpen: day.isOpen,
+                            openTime: day.openTime,
+                            closeTime: day.closeTime
+                        })
+                    });
+
+                    if (response.status === 401) { logout(); return; }
+                    if (!response.ok) throw new Error();
+                }
+
+                scheduleChanged = false;
+                btn.textContent = 'SPREMLJENO!';
+                setTimeout(() => { btn.textContent = 'SPREMI PROMJENE'; }, 2000);
+            } catch {
+                alert('Greška pri spremanju');
+                btn.textContent = 'SPREMI PROMJENE';
+                btn.disabled = false;
+            }
+        }
+
+        // ============= DATE OVERRIDES =============
+        function toggleOverrideTimeInputs() {
+            const status = document.getElementById('overrideStatus').value;
+            document.getElementById('overrideTimeGroup').classList.toggle('hidden', status === 'closed');
+        }
+
+        async function loadDateOverrides() {
+            const container = document.getElementById('overridesList');
+
+            try {
+                const response = await fetch('/api/admin/date-overrides', {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (response.status === 401) { logout(); return; }
+
+                const overrides = await response.json();
+
+                if (overrides.length === 0) {
+                    container.innerHTML = '<div class="text-center py-8 text-stone-600">Nema posebnih datuma</div>';
+                    return;
+                }
+
+                container.innerHTML = overrides.map(o => {
+                    const date = new Date(o.date);
+                    const formattedDate = date.toLocaleDateString('hr-HR', {
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                    });
+                    const isClosed = o.isClosed;
+                    const hasModifiedHours = o.openTime && o.closeTime && !isClosed;
+
+                    return `
+                        <div class="flex items-center justify-between p-4 bg-stone-800/30 border-l-4 ${isClosed ? 'border-red-500' : 'border-amber-500'}">
+                            <div class="flex items-center gap-6">
+                                <div class="font-medium">${formattedDate}</div>
+                                <div class="text-stone-500 italic">${o.reason || '-'}</div>
+                                ${hasModifiedHours ? `
+                                    <div class="text-amber-400 text-sm">${o.openTime} - ${o.closeTime}</div>
+                                ` : ''}
+                                <div class="px-3 py-1 text-xs ${isClosed
+                                    ? 'bg-red-900/30 text-red-400'
+                                    : 'bg-amber-900/30 text-amber-400'}">
+                                    ${isClosed ? 'ZATVORENO' : 'SKRAĆENO'}
+                                </div>
+                            </div>
+                            <button onclick="deleteDateOverride(${o.id})"
+                                class="px-3 py-1 border border-red-900 text-red-400 text-xs hover:bg-red-900/30 transition">
+                                UKLONI
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            } catch {
+                container.innerHTML = '<div class="text-center py-8 text-red-400">Greška pri učitavanju</div>';
+            }
+        }
+
+        async function addDateOverride() {
+            const dateInput = document.getElementById('overrideDate');
+            const statusSelect = document.getElementById('overrideStatus');
+            const reasonInput = document.getElementById('overrideReason');
+            const openTimeInput = document.getElementById('overrideOpenTime');
+            const closeTimeInput = document.getElementById('overrideCloseTime');
+
+            if (!dateInput.value) {
+                alert('Odaberite datum');
+                return;
+            }
+
+            const isClosed = statusSelect.value === 'closed';
+            const body = {
+                date: dateInput.value,
+                isClosed: isClosed,
+                reason: reasonInput.value || null
+            };
+
+            if (!isClosed) {
+                body.openTime = openTimeInput.value;
+                body.closeTime = closeTimeInput.value;
+            }
+
+            try {
+                const response = await fetch('/api/admin/date-overrides', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (response.status === 401) { logout(); return; }
+
+                if (response.ok) {
+                    dateInput.value = '';
+                    reasonInput.value = '';
+                    loadDateOverrides();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Greška pri dodavanju');
+                }
+            } catch {
+                alert('Greška pri dodavanju');
+            }
+        }
+
+        async function deleteDateOverride(id) {
+            if (!confirm('Ukloniti ovaj posebni datum?')) return;
+
+            try {
+                const response = await fetch(`/api/admin/date-overrides/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (response.status === 401) { logout(); return; }
+                if (response.ok) loadDateOverrides();
+            } catch {
+                alert('Greška pri brisanju');
+            }
+        }
+    </script>
+</body>
+</html>
