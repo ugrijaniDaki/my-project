@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura | Rezervacija</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; letter-spacing: 0.02em; }
+        .fade-in { animation: fadeIn 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slot-btn { transition: all 0.15s ease; }
+        .slot-btn:hover:not(:disabled):not(.slot-full) { transform: scale(1.02); }
+        .slot-btn.selected { background: #292524 !important; color: white !important; }
+        .slot-btn.slot-full {
+            background: #f5f5f4;
+            color: #a8a29e;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+        .slot-btn.slot-full span:last-child {
+            text-decoration: none;
+            color: #ef4444;
+        }
+        .loading { opacity: 0.5; pointer-events: none; }
+
+        /* Calendar styles */
+        .cal-day {
+            transition: all 0.2s ease;
+            aspect-ratio: 1;
+        }
+        .cal-day:hover:not(.cal-disabled):not(.cal-closed):not(.cal-past) {
+            transform: scale(1.05);
+        }
+        .cal-day.cal-selected {
+            background: #292524 !important;
+            color: white !important;
+        }
+        .cal-day.cal-available {
+            background: #ecfdf5;
+            color: #059669;
+            cursor: pointer;
+        }
+        .cal-day.cal-limited {
+            background: #fef3c7;
+            color: #d97706;
+            cursor: pointer;
+        }
+        .cal-day.cal-full {
+            background: #fee2e2;
+            color: #dc2626;
+            cursor: not-allowed;
+        }
+        .cal-day.cal-closed {
+            background: #f5f5f4;
+            color: #a8a29e;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+        .cal-day.cal-past {
+            background: #fafaf9;
+            color: #d6d3d1;
+            cursor: not-allowed;
+        }
+        .cal-day.cal-disabled {
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body class="bg-[#fafaf9] text-stone-800 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white w-full max-w-[500px] p-8 md:p-10 rounded-[3rem] shadow-xl shadow-stone-200/50 border border-stone-100 relative">
+
+        <div id="booking-container">
+            <header class="text-center mb-8">
+                <button onclick="window.history.back()" class="absolute top-6 left-6 text-stone-400 hover:text-stone-800 transition-colors text-sm">
+                    ← Natrag
+                </button>
+                <h1 class="text-3xl font-light tracking-[0.4em] uppercase">Aura</h1>
+                <div class="w-12 h-[1px] bg-stone-300 mx-auto mt-4"></div>
+                <p class="text-[10px] text-stone-400 uppercase tracking-[0.2em] mt-4 italic">Sezona 2026.</p>
+            </header>
+
+            <form id="res-form" class="space-y-6">
+                <!-- Calendar Section -->
+                <div class="space-y-3">
+                    <label class="block text-[9px] uppercase tracking-[0.2em] text-stone-400">Odaberite datum</label>
+
+                    <!-- Calendar Header -->
+                    <div class="flex items-center justify-between mb-2">
+                        <button type="button" id="prev-month" class="p-2 text-stone-400 hover:text-stone-800 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+                        <h3 id="calendar-month" class="text-sm font-medium text-stone-700"></h3>
+                        <button type="button" id="next-month" class="p-2 text-stone-400 hover:text-stone-800 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Calendar Grid -->
+                    <div class="bg-stone-50 rounded-2xl p-4">
+                        <!-- Day headers -->
+                        <div class="grid grid-cols-7 gap-1 mb-2">
+                            <div class="text-center text-[10px] text-stone-400 font-medium py-1">Pon</div>
+                            <div class="text-center text-[10px] text-stone-400 font-medium py-1">Uto</div>
+                            <div class="text-center text-[10px] text-stone-400 font-medium py-1">Sri</div>
+                            <div class="text-center text-[10px] text-stone-400 font-medium py-1">Čet</div>
+                            <div class="text-center text-[10px] text-stone-400 font-medium py-1">Pet</div>
+                            <div class="text-center text-[10px] text-stone-400 font-medium py-1">Sub</div>
+                            <div class="text-center text-[10px] text-stone-400 font-medium py-1">Ned</div>
+                        </div>
+                        <!-- Calendar days -->
+                        <div id="calendar-grid" class="grid grid-cols-7 gap-1">
+                            <!-- Days will be inserted here -->
+                        </div>
+
+                        <!-- Loading overlay -->
+                        <div id="calendar-loading" class="hidden text-center py-4">
+                            <div class="inline-block w-5 h-5 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="flex flex-wrap justify-center gap-3 mt-3">
+                        <div class="flex items-center gap-1">
+                            <div class="w-3 h-3 rounded bg-emerald-100"></div>
+                            <span class="text-[9px] text-stone-500">Dostupno</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-3 h-3 rounded bg-amber-100"></div>
+                            <span class="text-[9px] text-stone-500">Ograničeno</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-3 h-3 rounded bg-red-100"></div>
+                            <span class="text-[9px] text-stone-500">Popunjeno</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-3 h-3 rounded bg-stone-200 line-through"></div>
+                            <span class="text-[9px] text-stone-500">Zatvoreno</span>
+                        </div>
+                    </div>
+
+                    <!-- Selected date display -->
+                    <div id="selected-date-display" class="hidden text-center py-3 bg-stone-900 text-white rounded-xl mt-3">
+                        <p class="text-xs font-medium" id="selected-date-text"></p>
+                    </div>
+
+                    <input type="hidden" id="res-date" required>
+                </div>
+
+                <!-- Slot selection - dynamic -->
+                <div class="space-y-3" id="slot-container">
+                    <label class="block text-[9px] uppercase tracking-[0.2em] text-stone-400">Dostupni termini</label>
+                    <div id="slots-loading" class="hidden text-center py-6">
+                        <div class="inline-block w-6 h-6 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div>
+                        <p class="text-xs text-stone-400 mt-2">Učitavam termine...</p>
+                    </div>
+                    <div id="slots-closed" class="hidden text-center py-6 bg-red-50 rounded-2xl">
+                        <p class="text-red-600 text-sm font-medium">Zatvoreno</p>
+                        <p id="closed-reason" class="text-red-400 text-xs mt-1"></p>
+                    </div>
+                    <div id="slots-list" class="grid grid-cols-3 gap-2">
+                        <p class="col-span-3 text-center text-stone-400 text-xs py-4">Odaberite datum iz kalendara</p>
+                    </div>
+                    <input type="hidden" id="res-slot" required>
+                </div>
+
+                <!-- Broj gostiju -->
+                <div class="space-y-3">
+                    <label class="block text-[9px] uppercase tracking-[0.2em] text-stone-400">Broj gostiju</label>
+                    <div class="flex items-center justify-between border border-stone-100 rounded-2xl p-2">
+                        <button type="button" onclick="updateGuests(-1)" class="w-12 h-12 flex items-center justify-center text-stone-300 hover:text-stone-800 transition-colors text-xl font-light">—</button>
+                        <span id="guest-count" class="text-base font-medium">2</span>
+                        <button type="button" onclick="updateGuests(1)" class="w-12 h-12 flex items-center justify-center text-stone-300 hover:text-stone-800 transition-colors text-xl font-light">+</button>
+                    </div>
+                </div>
+
+                <!-- Posebni zahtjevi -->
+                <div class="space-y-3">
+                    <label class="block text-[9px] uppercase tracking-[0.2em] text-stone-400">Posebni zahtjevi (opcionalno)</label>
+                    <textarea id="res-notes" placeholder="Alergije, posebne prigode..." rows="2" class="w-full bg-stone-50 border-none rounded-2xl p-4 text-sm focus:ring-1 focus:ring-stone-200 outline-none text-stone-600 resize-none"></textarea>
+                </div>
+
+                <!-- Cijena -->
+                <div class="pt-4 border-t border-stone-50 flex justify-between items-end">
+                    <div>
+                        <p class="text-[9px] uppercase tracking-widest text-stone-400 mb-1">Cijena po osobi</p>
+                        <p class="text-sm font-medium text-stone-500">95,00 €</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] uppercase tracking-widest text-stone-400 mb-1">Ukupno</p>
+                        <p id="total-price" class="text-2xl font-light text-stone-800 tracking-tight">190,00 €</p>
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn" disabled class="w-full bg-stone-400 text-white py-5 rounded-2xl transition-all text-[10px] uppercase tracking-[0.4em] font-medium shadow-xl shadow-stone-200 cursor-not-allowed">
+                    Odaberite termin
+                </button>
+            </form>
+        </div>
+
+        <!-- Success screen -->
+        <div id="success-screen" class="hidden text-center py-10 fade-in">
+            <div class="w-12 h-[1px] bg-stone-800 mx-auto mb-10"></div>
+            <h2 class="text-xl font-light uppercase tracking-[0.3em] text-stone-800">Uspješno</h2>
+            <p id="summary-text" class="text-stone-500 text-xs mt-6 leading-relaxed px-6 font-light"></p>
+            <div class="mt-12">
+                <button onclick="window.location.reload()" class="text-[9px] uppercase tracking-[0.2em] text-stone-300 hover:text-stone-800 border-b border-transparent hover:border-stone-800 transition-all pb-1">
+                    Nova rezervacija
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let guests = 2;
+        let selectedSlot = null;
+        let selectedDate = null;
+        const pricePerPerson = 95;
+        const API_BASE = '';
+
+        const dayNames = ['Nedjelja', 'Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', 'Petak', 'Subota'];
+        const dayNamesShort = ['Ned', 'Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub'];
+        const monthNames = ['Siječanj', 'Veljača', 'Ožujak', 'Travanj', 'Svibanj', 'Lipanj',
+                           'Srpanj', 'Kolovoz', 'Rujan', 'Listopad', 'Studeni', 'Prosinac'];
+        const monthNamesGenitive = ['Siječnja', 'Veljače', 'Ožujka', 'Travnja', 'Svibnja', 'Lipnja',
+                           'Srpnja', 'Kolovoza', 'Rujna', 'Listopada', 'Studenog', 'Prosinca'];
+
+        // Calendar state
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let calendarData = {}; // Cache for availability data
+
+        // Today and limits
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const maxDate = new Date(today);
+        maxDate.setDate(maxDate.getDate() + 60);
+
+        // Initialize calendar
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCalendar();
+            loadMonthAvailability();
+        });
+
+        // Navigation buttons
+        document.getElementById('prev-month').addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+            loadMonthAvailability();
+        });
+
+        document.getElementById('next-month').addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+            loadMonthAvailability();
+        });
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const monthLabel = document.getElementById('calendar-month');
+
+            monthLabel.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            grid.innerHTML = '';
+
+            // First day of month
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            // Convert Sunday=0 to Monday=0 format
+            let startDay = firstDay.getDay() - 1;
+            if (startDay < 0) startDay = 6;
+
+            // Days in month
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            // Empty cells before first day
+            for (let i = 0; i < startDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'cal-day cal-disabled';
+                grid.appendChild(emptyCell);
+            }
+
+            // Days of month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const dateStr = formatDate(date);
+
+                const dayCell = document.createElement('button');
+                dayCell.type = 'button';
+                dayCell.className = 'cal-day flex items-center justify-center rounded-lg text-xs font-medium';
+                dayCell.textContent = day;
+                dayCell.dataset.date = dateStr;
+
+                // Check if past or outside range
+                if (date < tomorrow || date > maxDate) {
+                    dayCell.classList.add('cal-past');
+                } else {
+                    // Will be updated by loadMonthAvailability
+                    dayCell.classList.add('cal-available'); // Default until loaded
+                    dayCell.addEventListener('click', () => selectDate(dateStr, dayCell));
+                }
+
+                // Check if selected
+                if (selectedDate === dateStr) {
+                    dayCell.classList.add('cal-selected');
+                }
+
+                grid.appendChild(dayCell);
+            }
+        }
+
+        async function loadMonthAvailability() {
+            const grid = document.getElementById('calendar-grid');
+            const loading = document.getElementById('calendar-loading');
+
+            loading.classList.remove('hidden');
+
+            // Get all dates in current month view
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const dates = [];
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                if (date >= tomorrow && date <= maxDate) {
+                    dates.push(formatDate(date));
+                }
+            }
+
+            // Fetch availability for all dates in parallel
+            try {
+                const promises = dates.map(async (dateStr) => {
+                    if (calendarData[dateStr]) {
+                        return { date: dateStr, ...calendarData[dateStr] };
+                    }
+
+                    const response = await fetch(`${API_BASE}/api/schedule/available/${dateStr}`);
+                    const data = await response.json();
+                    calendarData[dateStr] = data;
+                    return { date: dateStr, ...data };
+                });
+
+                const results = await Promise.all(promises);
+
+                // Update calendar cells
+                results.forEach(result => {
+                    const cell = grid.querySelector(`[data-date="${result.date}"]`);
+                    if (!cell) return;
+
+                    // Remove all status classes
+                    cell.classList.remove('cal-available', 'cal-limited', 'cal-full', 'cal-closed');
+
+                    if (result.isClosed) {
+                        cell.classList.add('cal-closed');
+                        cell.title = result.reason || 'Zatvoreno';
+                    } else {
+                        // Count slots with any availability vs total slots
+                        const allSlots = result.allSlots || result.slots || [];
+                        const availableSlots = (result.slots || []).filter(s => s.available > 0);
+                        const slotsWithSpace = availableSlots.length;
+
+                        // Calculate total capacity usage
+                        const totalAvailable = availableSlots.reduce((sum, s) => sum + s.available, 0);
+                        const totalMax = availableSlots.reduce((sum, s) => sum + s.maxReservations, 0);
+
+                        if (slotsWithSpace === 0) {
+                            cell.classList.add('cal-full');
+                            cell.title = 'Popunjeno';
+                        } else if (totalAvailable < totalMax * 0.5) {
+                            // Less than 50% of total capacity available = limited (yellow)
+                            cell.classList.add('cal-limited');
+                            cell.title = `Ograničena dostupnost (${slotsWithSpace} termina)`;
+                        } else {
+                            cell.classList.add('cal-available');
+                            cell.title = `${slotsWithSpace} termina dostupno`;
+                        }
+                    }
+
+                    // Re-apply selected state
+                    if (selectedDate === result.date) {
+                        cell.classList.add('cal-selected');
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error loading availability:', error);
+            }
+
+            loading.classList.add('hidden');
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function selectDate(dateStr, cell) {
+            // Check if closed or full
+            if (cell.classList.contains('cal-closed') || cell.classList.contains('cal-full')) {
+                return;
+            }
+
+            // Deselect previous
+            document.querySelectorAll('.cal-day.cal-selected').forEach(c => c.classList.remove('cal-selected'));
+
+            // Select new
+            cell.classList.add('cal-selected');
+            selectedDate = dateStr;
+            document.getElementById('res-date').value = dateStr;
+
+            // Update display
+            const date = new Date(dateStr);
+            const dayName = dayNames[date.getDay()];
+            const dayNum = date.getDate();
+            const monthName = monthNamesGenitive[date.getMonth()];
+
+            document.getElementById('selected-date-display').classList.remove('hidden');
+            document.getElementById('selected-date-text').textContent = `${dayName}, ${dayNum}. ${monthName} ${date.getFullYear()}`;
+
+            // Load slots
+            loadAvailableSlots(dateStr);
+        }
+
+        function updateGuests(val) {
+            guests += val;
+            if (guests < 1) guests = 1;
+            if (guests > 8) guests = 8;
+
+            document.getElementById('guest-count').innerText = guests;
+            document.getElementById('total-price').innerText = (guests * pricePerPerson).toLocaleString('hr-HR', {minimumFractionDigits: 2}) + ' €';
+        }
+
+        function selectSlot(time, btn) {
+            // Deselect all
+            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+            // Select this one
+            btn.classList.add('selected');
+            selectedSlot = time;
+            document.getElementById('res-slot').value = time;
+
+            // Enable submit button
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('bg-stone-400', 'cursor-not-allowed');
+            submitBtn.classList.add('bg-stone-900', 'hover:bg-stone-800', 'cursor-pointer');
+            submitBtn.textContent = 'Potvrdi rezervaciju';
+        }
+
+        async function loadAvailableSlots(dateStr) {
+            const slotsLoading = document.getElementById('slots-loading');
+            const slotsClosed = document.getElementById('slots-closed');
+            const slotsList = document.getElementById('slots-list');
+            const submitBtn = document.getElementById('submit-btn');
+
+            // Reset
+            slotsLoading.classList.remove('hidden');
+            slotsClosed.classList.add('hidden');
+            slotsList.innerHTML = '';
+            selectedSlot = null;
+            document.getElementById('res-slot').value = '';
+            submitBtn.disabled = true;
+            submitBtn.classList.add('bg-stone-400', 'cursor-not-allowed');
+            submitBtn.classList.remove('bg-stone-900', 'hover:bg-stone-800', 'cursor-pointer');
+            submitBtn.textContent = 'Odaberite termin';
+
+            try {
+                // Use cached data if available
+                let data = calendarData[dateStr];
+                if (!data) {
+                    const response = await fetch(`${API_BASE}/api/schedule/available/${dateStr}`);
+                    data = await response.json();
+                    calendarData[dateStr] = data;
+                }
+
+                slotsLoading.classList.add('hidden');
+
+                if (data.isClosed) {
+                    slotsClosed.classList.remove('hidden');
+                    document.getElementById('closed-reason').textContent = data.reason || 'Restoran ne radi ovaj dan';
+                    return;
+                }
+
+                // Get all time slots for the day (including full ones)
+                const allTimeSlots = data.allSlots || [];
+
+                if (allTimeSlots.length === 0) {
+                    slotsList.innerHTML = '<p class="col-span-3 text-center text-stone-400 text-xs py-4">Nema termina za ovaj datum</p>';
+                    return;
+                }
+
+                // Show all slots (including full ones)
+                allTimeSlots.forEach(slot => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+
+                    const isFull = slot.available <= 0;
+
+                    if (isFull) {
+                        btn.className = 'slot-btn slot-full bg-stone-100 rounded-xl py-3 px-2 text-sm';
+                        btn.disabled = true;
+                        btn.innerHTML = `
+                            <span class="block font-medium">${slot.time}</span>
+                            <span class="block text-[10px]">Popunjeno</span>
+                        `;
+                    } else {
+                        btn.className = 'slot-btn bg-stone-50 rounded-xl py-3 px-2 text-sm text-stone-600 hover:bg-stone-100';
+
+                        // Color code based on availability
+                        const percentage = (slot.available / slot.maxReservations) * 100;
+                        let availClass = 'text-emerald-600';
+                        if (percentage <= 33) availClass = 'text-red-500';
+                        else if (percentage <= 66) availClass = 'text-amber-600';
+
+                        btn.innerHTML = `
+                            <span class="block font-medium">${slot.time}</span>
+                            <span class="block text-[10px] ${availClass}">${slot.available}/${slot.maxReservations} mjesta</span>
+                        `;
+                        btn.onclick = () => selectSlot(slot.time, btn);
+                    }
+
+                    slotsList.appendChild(btn);
+                });
+
+                // Show working hours
+                if (data.openTime && data.closeTime) {
+                    const hoursInfo = document.createElement('p');
+                    hoursInfo.className = 'col-span-3 text-center text-stone-400 text-[10px] mt-2';
+                    hoursInfo.textContent = `Radno vrijeme: ${data.openTime} - ${data.closeTime}`;
+                    slotsList.appendChild(hoursInfo);
+                }
+
+            } catch (error) {
+                console.error('Error loading slots:', error);
+                slotsLoading.classList.add('hidden');
+                slotsList.innerHTML = '<p class="col-span-3 text-center text-red-400 text-xs py-4">Greška pri učitavanju termina</p>';
+            }
+        }
+
+        // Form submission
+        document.getElementById('res-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!selectedSlot || !selectedDate) {
+                alert('Molimo odaberite datum i termin');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.textContent = 'Šaljem...';
+            submitBtn.disabled = true;
+
+            const dateObj = new Date(selectedDate);
+            const dayName = dayNames[dateObj.getDay()];
+            const dayNum = dateObj.getDate();
+            const monthName = monthNamesGenitive[dateObj.getMonth()];
+            const year = dateObj.getFullYear();
+
+            const reservation = {
+                date: selectedDate,
+                time: selectedSlot,
+                guests: parseInt(guests),
+                specialRequests: document.getElementById('res-notes').value || null
+            };
+
+            console.log('Sending reservation:', JSON.stringify(reservation));
+
+            // Get auth token from localStorage
+            const token = localStorage.getItem('authToken');
+
+            try {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(`${API_BASE}/api/reservations`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(reservation)
+                });
+
+                if (response.status === 401) {
+                    alert('Morate biti prijavljeni za rezervaciju. Molimo prijavite se.');
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                if (response.ok) {
+                    const totalPrice = (guests * pricePerPerson).toLocaleString('hr-HR', {minimumFractionDigits: 2});
+
+                    document.getElementById('booking-container').classList.add('hidden');
+                    const success = document.getElementById('success-screen');
+                    success.classList.remove('hidden');
+
+                    document.getElementById('summary-text').innerHTML =
+                        `Vaša rezervacija za <b>${guests} ${guests === 1 ? 'osobu' : guests < 5 ? 'osobe' : 'osoba'}</b> je zaprimljena.<br><br>` +
+                        `<span class="text-stone-400 uppercase tracking-widest text-[10px]">Datum:</span><br><b>${dayName}, ${dayNum}. ${monthName} ${year}</b><br><br>` +
+                        `<span class="text-stone-400 uppercase tracking-widest text-[10px]">Termin:</span><br><b>${selectedSlot}</b><br><br>` +
+                        `<span class="text-stone-400 uppercase tracking-widest text-[10px]">Ukupni iznos:</span><br><span class="text-stone-800 text-base">${totalPrice} €</span>`;
+                } else {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    let errorMessage = 'Greška prilikom slanja';
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMessage = errorJson.error || errorJson.title || errorText;
+                    } catch (e) {
+                        errorMessage = errorText || 'Greška prilikom slanja';
+                    }
+                    throw new Error(errorMessage);
+                }
+            } catch (error) {
+                console.error('Reservation error:', error);
+                alert(error.message || 'Greška prilikom spremanja rezervacije. Pokušajte ponovo.');
+                submitBtn.textContent = 'Potvrdi rezervaciju';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

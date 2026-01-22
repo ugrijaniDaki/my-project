@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - AURA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            color: #d4af37;
+            font-family: 'Georgia', serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; font-size: 2.5em; margin-bottom: 10px; letter-spacing: 6px; font-weight: 300; }
+        .subtitle { text-align: center; margin-bottom: 40px; opacity: 0.7; letter-spacing: 2px; }
+
+        /* Login */
+        .login-box {
+            max-width: 400px;
+            margin: 100px auto;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(212,175,55,0.3);
+            padding: 40px;
+        }
+        .login-box h2 { text-align: center; margin-bottom: 30px; letter-spacing: 4px; }
+        .login-box input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(212,175,55,0.3);
+            color: #d4af37;
+            font-size: 1em;
+        }
+        .login-box button {
+            width: 100%;
+            padding: 15px;
+            background: #d4af37;
+            border: none;
+            color: #000;
+            cursor: pointer;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .login-box button:hover { background: #e5c158; }
+        .error { color: #ff6b6b; text-align: center; margin-bottom: 15px; }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid rgba(212,175,55,0.3);
+            color: #d4af37;
+            cursor: pointer;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 0.85em;
+        }
+        .tab.active { background: #d4af37; color: #000; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Stats */
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .stat-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); padding: 20px; text-align: center; }
+        .stat-card h3 { font-size: 2.5em; margin-bottom: 10px; }
+        .stat-card p { font-size: 0.9em; opacity: 0.7; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* Table */
+        .table-container { background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: rgba(212,175,55,0.1); }
+        th { padding: 15px; text-align: left; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 0.85em; border-bottom: 2px solid rgba(212,175,55,0.3); }
+        td { padding: 15px; border-bottom: 1px solid rgba(212,175,55,0.1); }
+        tr:hover { background: rgba(255,255,255,0.03); }
+
+        /* Buttons */
+        .btn { padding: 8px 15px; cursor: pointer; font-size: 0.85em; letter-spacing: 1px; transition: all 0.3s; border: 1px solid; }
+        .btn-delete { background: transparent; border-color: rgba(255,0,0,0.5); color: rgba(255,0,0,0.7); }
+        .btn-delete:hover { background: rgba(255,0,0,0.2); color: #ff0000; }
+        .btn-confirm { background: transparent; border-color: rgba(0,255,0,0.5); color: rgba(0,255,0,0.7); }
+        .btn-confirm:hover { background: rgba(0,255,0,0.2); color: #00ff00; }
+        .btn-primary { background: #d4af37; border-color: #d4af37; color: #000; }
+        .btn-primary:hover { background: #e5c158; }
+
+        .refresh-btn { display: block; margin: 20px auto; padding: 12px 30px; background: transparent; border: 2px solid #d4af37; color: #d4af37; cursor: pointer; letter-spacing: 2px; text-transform: uppercase; }
+        .refresh-btn:hover { background: #d4af37; color: #000; }
+
+        /* Schedule */
+        .schedule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .day-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); padding: 20px; }
+        .day-card h3 { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .day-card .status { font-size: 0.7em; padding: 4px 10px; border-radius: 3px; }
+        .day-card .status.open { background: rgba(0,255,0,0.2); color: #00ff00; }
+        .day-card .status.closed { background: rgba(255,0,0,0.2); color: #ff0000; }
+        .day-hours { font-size: 0.9em; opacity: 0.7; margin-bottom: 10px; }
+        .slots-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .slot-tag { background: rgba(212,175,55,0.2); padding: 4px 10px; font-size: 0.8em; border-radius: 3px; }
+        .slot-tag.disabled { opacity: 0.4; text-decoration: line-through; }
+
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,0,0,0.3); transition: 0.3s; border-radius: 26px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; transition: 0.3s; border-radius: 50%; }
+        input:checked + .toggle-slider { background: rgba(0,255,0,0.5); }
+        input:checked + .toggle-slider:before { transform: translateX(24px); }
+
+        /* Form */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.9em; opacity: 0.7; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(212,175,55,0.3); color: #d4af37; }
+
+        .badge { padding: 4px 10px; font-size: 0.75em; border-radius: 3px; text-transform: uppercase; }
+        .badge-pending { background: rgba(255,165,0,0.3); color: orange; }
+        .badge-confirmed { background: rgba(0,255,0,0.3); color: #00ff00; }
+        .badge-cancelled { background: rgba(255,0,0,0.3); color: #ff6b6b; }
+        .badge-completed { background: rgba(100,100,100,0.3); color: #aaa; }
+
+        .loading { text-align: center; padding: 40px; font-size: 1.2em; opacity: 0.7; }
+        .no-data { text-align: center; padding: 60px; opacity: 0.5; }
+        .hidden { display: none !important; }
+
+        @media (max-width: 768px) {
+            table { font-size: 0.85em; }
+            th, td { padding: 10px 8px; }
+            h1 { font-size: 1.8em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Section -->
+        <div id="loginSection" class="login-box">
+            <h2>ADMIN LOGIN</h2>
+            <div id="loginError" class="error hidden"></div>
+            <input type="email" id="loginEmail" placeholder="Email">
+            <input type="password" id="loginPassword" placeholder="Lozinka">
+            <button onclick="login()">Prijava</button>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminPanel" class="hidden">
+            <h1>AURA - ADMIN</h1>
+            <p class="subtitle">Upravljanje restoranom</p>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('reservations')">Rezervacije</button>
+                <button class="tab" onclick="showTab('schedule')">Raspored</button>
+                <button class="tab" onclick="showTab('menu')">Meni</button>
+                <button class="tab" onclick="showTab('overrides')">Blagdani</button>
+                <button class="tab" style="margin-left: auto; border-color: #ff6b6b; color: #ff6b6b;" onclick="logout()">Odjava</button>
+            </div>
+
+            <!-- Reservations Tab -->
+            <div id="tab-reservations" class="tab-content active">
+                <div class="stats">
+                    <div class="stat-card"><h3 id="totalReservations">0</h3><p>Ukupno</p></div>
+                    <div class="stat-card"><h3 id="todayReservations">0</h3><p>Danas</p></div>
+                    <div class="stat-card"><h3 id="pendingReservations">0</h3><p>Na čekanju</p></div>
+                </div>
+                <button class="refresh-btn" onclick="loadReservations()">Osvježi</button>
+                <div class="table-container">
+                    <div id="resLoading" class="loading">Učitavanje...</div>
+                    <div id="resNoData" class="no-data hidden">Nema rezervacija</div>
+                    <table id="resTable" class="hidden">
+                        <thead>
+                            <tr>
+                                <th>Datum</th>
+                                <th>Vrijeme</th>
+                                <th>Gost</th>
+                                <th>Kontakt</th>
+                                <th>Osoba</th>
+                                <th>Status</th>
+                                <th>Stol</th>
+                                <th>Akcije</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Schedule Tab -->
+            <div id="tab-schedule" class="tab-content">
+                <button class="refresh-btn" onclick="loadSchedule()">Osvježi raspored</button>
+                <div id="scheduleLoading" class="loading">Učitavanje...</div>
+                <div id="scheduleGrid" class="schedule-grid"></div>
+            </div>
+
+            <!-- Menu Tab -->
+            <div id="tab-menu" class="tab-content">
+                <button class="refresh-btn" onclick="loadMenu()">Osvježi meni</button>
+                <div class="table-container" style="margin-top: 20px;">
+                    <div id="menuLoading" class="loading">Učitavanje...</div>
+                    <table id="menuTable" class="hidden">
+                        <thead>
+                            <tr>
+                                <th>Naziv</th>
+                                <th>Kategorija</th>
+                                <th>Cijena</th>
+                                <th>Dostupno</th>
+                                <th>Akcije</th>
+                            </tr>
+                        </thead>
+                        <tbody id="menuBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Date Overrides Tab -->
+            <div id="tab-overrides" class="tab-content">
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="date" id="overrideDate" style="padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(212,175,55,0.3); color: #d4af37;">
+                    <input type="text" id="overrideReason" placeholder="Razlog (npr. Božić)" style="padding: 10px; flex: 1; min-width: 200px; background: rgba(0,0,0,0.3); border: 1px solid rgba(212,175,55,0.3); color: #d4af37;">
+                    <button class="btn btn-primary" onclick="addDateOverride()">Dodaj zatvoreni dan</button>
+                </div>
+                <div class="table-container">
+                    <div id="overridesLoading" class="loading">Učitavanje...</div>
+                    <table id="overridesTable" class="hidden">
+                        <thead><tr><th>Datum</th><th>Razlog</th><th>Akcija</th></tr></thead>
+                        <tbody id="overridesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = localStorage.getItem('adminToken');
+        const dayNames = ['Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', 'Petak', 'Subota', 'Nedjelja'];
+
+        // Check if logged in on load
+        if (authToken) {
+            verifyToken();
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('loginError');
+
+            try {
+                const response = await fetch('/api/auth/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+
+                if (response.ok && data.token) {
+                    authToken = data.token;
+                    localStorage.setItem('adminToken', authToken);
+                    showAdminPanel();
+                } else {
+                    errorEl.textContent = data.error || 'Pogrešan email ili lozinka';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                errorEl.textContent = 'Greška pri povezivanju';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function verifyToken() {
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.isAdmin) {
+                        showAdminPanel();
+                        return;
+                    }
+                }
+            } catch (e) {}
+            logout();
+        }
+
+        function logout() {
+            authToken = null;
+            localStorage.removeItem('adminToken');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+        }
+
+        function showAdminPanel() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+            loadReservations();
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            if (tabName === 'schedule') loadSchedule();
+            if (tabName === 'menu') loadMenu();
+            if (tabName === 'overrides') loadOverrides();
+        }
+
+        // ==================== RESERVATIONS ====================
+        async function loadReservations() {
+            const loading = document.getElementById('resLoading');
+            const noData = document.getElementById('resNoData');
+            const table = document.getElementById('resTable');
+            const tbody = document.getElementById('resBody');
+
+            loading.classList.remove('hidden');
+            noData.classList.add('hidden');
+            table.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/reservations', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const reservations = await response.json();
+
+                loading.classList.add('hidden');
+
+                if (!reservations.length) {
+                    noData.classList.remove('hidden');
+                    updateStats(0, 0, 0);
+                    return;
+                }
+
+                const today = new Date().toISOString().split('T')[0];
+                const todayCount = reservations.filter(r => r.date.startsWith(today)).length;
+                const pendingCount = reservations.filter(r => r.status === 'Pending').length;
+                updateStats(reservations.length, todayCount, pendingCount);
+
+                tbody.innerHTML = '';
+                reservations.forEach(r => {
+                    const date = new Date(r.date).toLocaleDateString('hr-HR');
+                    const statusClass = r.status.toLowerCase();
+                    const user = r.user || {};
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${r.time}</td>
+                            <td>${user.name || '-'}</td>
+                            <td>${user.email || '-'}<br><small>${user.phone || ''}</small></td>
+                            <td>${r.guests}</td>
+                            <td><span class="badge badge-${statusClass}">${r.status}</span></td>
+                            <td>${r.tableNumber || '-'}</td>
+                            <td>
+                                <select onchange="updateReservation(${r.id}, this.value)" style="padding: 5px; background: rgba(0,0,0,0.3); border: 1px solid rgba(212,175,55,0.3); color: #d4af37;">
+                                    <option value="">Status...</option>
+                                    <option value="1">Potvrdi</option>
+                                    <option value="2">Otkaži</option>
+                                    <option value="3">Završeno</option>
+                                </select>
+                                <button class="btn btn-delete" onclick="deleteReservation(${r.id})">X</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                table.classList.remove('hidden');
+            } catch (e) {
+                loading.classList.add('hidden');
+                alert('Greška pri učitavanju');
+            }
+        }
+
+        function updateStats(total, today, pending) {
+            document.getElementById('totalReservations').textContent = total;
+            document.getElementById('todayReservations').textContent = today;
+            document.getElementById('pendingReservations').textContent = pending;
+        }
+
+        async function updateReservation(id, status) {
+            if (!status) return;
+            try {
+                await fetch(`/api/reservations/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ status: parseInt(status) })
+                });
+                loadReservations();
+            } catch (e) { alert('Greška'); }
+        }
+
+        async function deleteReservation(id) {
+            if (!confirm('Obrisati rezervaciju?')) return;
+            try {
+                await fetch(`/api/reservations/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                loadReservations();
+            } catch (e) { alert('Greška'); }
+        }
+
+        // ==================== SCHEDULE ====================
+        async function loadSchedule() {
+            const loading = document.getElementById('scheduleLoading');
+            const grid = document.getElementById('scheduleGrid');
+
+            loading.classList.remove('hidden');
+            grid.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/schedule');
+                const schedule = await response.json();
+
+                loading.classList.add('hidden');
+
+                schedule.forEach((day, index) => {
+                    const slots = day.timeSlots || [];
+                    const slotsHtml = slots.map(s =>
+                        `<span class="slot-tag">${s.time} (${s.maxReservations})</span>`
+                    ).join('');
+
+                    grid.innerHTML += `
+                        <div class="day-card">
+                            <h3>
+                                ${dayNames[index]}
+                                <span class="status ${day.isOpen ? 'open' : 'closed'}">${day.isOpen ? 'OTVORENO' : 'ZATVORENO'}</span>
+                            </h3>
+                            <div class="day-hours">${day.openTime || '--:--'} - ${day.closeTime || '--:--'}</div>
+                            <div style="margin: 15px 0;">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" ${day.isOpen ? 'checked' : ''} onchange="toggleDay(${index}, this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span style="margin-left: 10px; font-size: 0.9em;">${day.isOpen ? 'Otvoreno' : 'Zatvoreno'}</span>
+                            </div>
+                            <div class="slots-list">${slotsHtml || '<span style="opacity:0.5">Nema slotova</span>'}</div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                loading.classList.add('hidden');
+                grid.innerHTML = '<p class="no-data">Greška pri učitavanju</p>';
+            }
+        }
+
+        async function toggleDay(dayIndex, isOpen) {
+            try {
+                await fetch(`/api/admin/schedule/${dayIndex}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ isOpen, openTime: '12:00', closeTime: '22:00' })
+                });
+                loadSchedule();
+            } catch (e) { alert('Greška'); }
+        }
+
+        // ==================== MENU ====================
+        async function loadMenu() {
+            const loading = document.getElementById('menuLoading');
+            const table = document.getElementById('menuTable');
+            const tbody = document.getElementById('menuBody');
+
+            loading.classList.remove('hidden');
+            table.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/admin/menu', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const items = await response.json();
+
+                loading.classList.add('hidden');
+                tbody.innerHTML = '';
+
+                items.forEach(item => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${item.category}</td>
+                            <td>${item.price.toFixed(2)} EUR</td>
+                            <td>${item.isAvailable ? 'Da' : 'Ne'}</td>
+                            <td>
+                                <button class="btn btn-delete" onclick="deleteMenuItem(${item.id})">Obriši</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                table.classList.remove('hidden');
+            } catch (e) {
+                loading.classList.add('hidden');
+            }
+        }
+
+        async function deleteMenuItem(id) {
+            if (!confirm('Obrisati stavku?')) return;
+            try {
+                await fetch(`/api/admin/menu/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                loadMenu();
+            } catch (e) { alert('Greška'); }
+        }
+
+        // ==================== DATE OVERRIDES ====================
+        async function loadOverrides() {
+            const loading = document.getElementById('overridesLoading');
+            const table = document.getElementById('overridesTable');
+            const tbody = document.getElementById('overridesBody');
+
+            loading.classList.remove('hidden');
+            table.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/admin/date-overrides', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const overrides = await response.json();
+
+                loading.classList.add('hidden');
+                tbody.innerHTML = '';
+
+                overrides.forEach(o => {
+                    const date = new Date(o.date).toLocaleDateString('hr-HR');
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${o.reason || '-'}</td>
+                            <td><button class="btn btn-delete" onclick="deleteOverride(${o.id})">Obriši</button></td>
+                        </tr>
+                    `;
+                });
+
+                table.classList.remove('hidden');
+            } catch (e) {
+                loading.classList.add('hidden');
+            }
+        }
+
+        async function addDateOverride() {
+            const date = document.getElementById('overrideDate').value;
+            const reason = document.getElementById('overrideReason').value;
+
+            if (!date) { alert('Odaberite datum'); return; }
+
+            try {
+                await fetch('/api/admin/date-overrides', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ date, isClosed: true, reason })
+                });
+                document.getElementById('overrideDate').value = '';
+                document.getElementById('overrideReason').value = '';
+                loadOverrides();
+            } catch (e) { alert('Greška'); }
+        }
+
+        async function deleteOverride(id) {
+            if (!confirm('Obrisati?')) return;
+            try {
+                await fetch(`/api/admin/date-overrides/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                loadOverrides();
+            } catch (e) { alert('Greška'); }
+        }
+    </script>
+</body>
+</html>

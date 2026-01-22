@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura | Gastronomsko Iskustvo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hero-gradient { background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)); }
+        .reveal { animation: reveal 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+        @keyframes reveal {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-[#fafaf9] text-stone-800 antialiased">
+
+    <nav class="fixed w-full z-50 flex justify-between items-center px-8 py-6 mix-blend-difference text-white">
+        <span class="text-xl tracking-[0.5em] uppercase font-light">Aura</span>
+        <div class="space-x-8 text-[10px] uppercase tracking-[0.2em] hidden md:block">
+            <a href="#" class="hover:opacity-50 transition">Koncept</a>
+            <a href="#" class="hover:opacity-50 transition">Menu</a>
+            <a href="contact.html" class="hover:opacity-50 transition">Kontakt</a>
+        </div>
+    </nav>
+
+    <section class="relative h-screen w-full overflow-hidden flex items-center justify-center">
+        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=2070" 
+             class="absolute inset-0 w-full h-full object-cover scale-105" alt="Restaurant Interior">
+        <div class="absolute inset-0 hero-gradient"></div>
+        
+        <div class="relative text-center text-white px-4 reveal">
+            <p class="text-[10px] uppercase tracking-[0.5em] mb-4 opacity-80">Zagreb — Sezona 2026</p>
+            <h1 class="text-5xl md:text-7xl font-light tracking-tighter mb-8 italic">Okusi tišine.</h1>
+            <a href="reservation.html" class="inline-block border border-white px-10 py-4 text-[10px] uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500">
+                Rezervirajte svoj stol
+            </a>
+        </div>
+    </section>
+
+    <section class="max-w-6xl mx-auto px-8 py-32 grid md:grid-cols-2 gap-20 items-center">
+        <div class="space-y-8">
+            <h2 class="text-[10px] uppercase tracking-[0.4em] text-stone-400">Filozofija</h2>
+            <h3 class="text-3xl font-light leading-snug">Minimalizam na tanjuru, <br>maksimalizam u okusu.</h3>
+            <p class="text-stone-500 font-light leading-relaxed text-sm">
+                Aura nije samo restoran, već putovanje kroz osjetila. Svaka namirnica u sezoni 2026. pažljivo je odabrana s lokalnih OPG-ova, tretirana s poštovanjem i pretvorena u umjetnost.
+            </p>
+            <div class="pt-4 text-[10px] uppercase tracking-[0.2em] font-medium border-b border-stone-200 inline-block pb-1 cursor-pointer hover:border-stone-800 transition">
+                Istražite našu priču
+            </div>
+        </div>
+        <div class="relative h-[500px] overflow-hidden rounded-sm shadow-2xl">
+            <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=1974" 
+                 class="w-full h-full object-cover" alt="Fine Dining Plate">
+        </div>
+    </section>
+
+    <section class="bg-stone-100 py-32 px-8">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="h-80 overflow-hidden group">
+                <img src="https://images.unsplash.com/photo-1550966841-3ecf17bac941?auto=format&fit=crop&q=80&w=1887" 
+                     class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="Detail">
+            </div>
+            <div class="h-80 overflow-hidden flex items-center justify-center p-8 bg-white text-center italic font-light text-xl">
+                "Hrana koja priča priču o zemlji, moru i ljudima."
+            </div>
+            <div class="h-80 overflow-hidden group">
+                <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&q=80&w=2070" 
+                     class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="Detail">
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-32 text-center">
+        <h4 class="text-2xl font-light mb-10 tracking-widest uppercase">Pridružite nam se</h4>
+        <a href="1.html" class="bg-stone-900 text-white px-12 py-5 rounded-full text-[10px] uppercase tracking-[0.3em] hover:bg-stone-700 transition shadow-xl shadow-stone-200">
+            Osigurajte termin
+        </a>
+        <div class="mt-20 text-[9px] text-stone-400 uppercase tracking-widest space-y-2">
+            <p>Trg Kralja Tomislava 1, Zagreb</p>
+            <p>&copy; 2026 Aura Fine Dining Group</p>
+        </div>
+    </footer>
+
+</body>
+</html>
