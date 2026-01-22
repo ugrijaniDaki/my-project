@@ -16,14 +16,19 @@ builder.Services.AddCors(options =>
 });
 
 // Add PostgreSQL Database
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("postgresql://"))
+string connectionString;
+if (!string.IsNullOrEmpty(databaseUrl) && databaseUrl.StartsWith("postgresql://"))
 {
-    // Parse Neon/Heroku style DATABASE_URL: postgresql://user:password@host:port/database
-    var uri = new Uri(connectionString);
+    // Parse Neon style DATABASE_URL: postgresql://user:password@host/database?sslmode=require
+    // Remove query string before parsing
+    var urlWithoutQuery = databaseUrl.Split('?')[0];
+    var uri = new Uri(urlWithoutQuery);
     var userInfo = uri.UserInfo.Split(':');
-    connectionString = $"Host={uri.Host};Port={(uri.Port > 0 ? uri.Port : 5432)};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    var database = uri.AbsolutePath.TrimStart('/');
+
+    connectionString = $"Host={uri.Host};Database={database};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
 }
 else
 {
