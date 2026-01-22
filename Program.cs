@@ -1938,3 +1938,4 @@ public class AuraDbContext : DbContext
             .HasPrecision(10, 2);
     }
 }
+// trigger redeploy
