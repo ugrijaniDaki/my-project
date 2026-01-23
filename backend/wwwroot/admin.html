@@ -68,8 +68,19 @@
             backdrop-filter: blur(8px);
         }
 
-        input[type="time"], input[type="date"], input[type="text"], select {
+        input[type="time"], input[type="date"], input[type="text"], input[type="number"], input[type="url"], select, textarea {
             color-scheme: dark;
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        #menuModal, #deleteModal {
+            backdrop-filter: blur(8px);
         }
     </style>
 </head>
@@ -114,7 +125,7 @@
 
         <main class="max-w-7xl mx-auto p-6">
             <!-- Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
                 <div class="bg-stone-900/50 border border-stone-800 p-6 text-center">
                     <div id="totalReservations" class="text-4xl gold font-light">0</div>
                     <div class="text-stone-500 text-xs tracking-widest mt-2">REZERVACIJA</div>
@@ -130,6 +141,10 @@
                 <div class="bg-stone-900/50 border border-stone-800 p-6 text-center">
                     <div id="totalUsers" class="text-4xl gold font-light">0</div>
                     <div class="text-stone-500 text-xs tracking-widest mt-2">KORISNIKA</div>
+                </div>
+                <div class="bg-stone-900/50 border border-stone-800 p-6 text-center cursor-pointer hover:border-amber-500/50 transition" onclick="switchTab('menu')">
+                    <div id="totalMenuItems" class="text-4xl gold font-light">0</div>
+                    <div class="text-stone-500 text-xs tracking-widest mt-2">JELA</div>
                 </div>
             </div>
 
@@ -154,6 +169,10 @@
                 <button onclick="switchTab('users')" data-tab="users"
                     class="tab-btn px-6 py-3 text-sm tracking-wider border border-stone-700 text-stone-400 hover:border-amber-500 transition">
                     KORISNICI
+                </button>
+                <button onclick="switchTab('menu')" data-tab="menu"
+                    class="tab-btn px-6 py-3 text-sm tracking-wider border border-stone-700 text-stone-400 hover:border-amber-500 transition">
+                    JELOVNIK
                 </button>
             </div>
 
@@ -280,7 +299,195 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Menu Tab -->
+            <div id="menuTab" class="tab-content hidden">
+                <!-- Header with Add Button -->
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-lg gold tracking-wider">UPRAVLJANJE JELOVNIKOM</h3>
+                        <select id="menuCategoryFilter" onchange="filterMenuByCategory()" class="px-4 py-2 bg-stone-800 border border-stone-700 text-stone-300 text-sm">
+                            <option value="all">Sve kategorije</option>
+                            <option value="Appetizer">Predjela</option>
+                            <option value="Soup">Juhe</option>
+                            <option value="Salad">Salate</option>
+                            <option value="Pasta">Tjestenine</option>
+                            <option value="Fish">Riba</option>
+                            <option value="Meat">Meso</option>
+                            <option value="Dessert">Deserti</option>
+                            <option value="Beverage">Pića</option>
+                            <option value="Special">Specijaliteti</option>
+                        </select>
+                    </div>
+                    <button onclick="openMenuModal()" class="px-6 py-3 bg-gold text-black font-medium tracking-wider hover:bg-amber-400 transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        DODAJ JELO
+                    </button>
+                </div>
+
+                <div id="menuLoading" class="text-center py-12 text-stone-500">Učitavanje...</div>
+                <div id="menuEmpty" class="hidden text-center py-12 text-stone-600">Nema jela u jelovniku</div>
+
+                <!-- Menu Items Grid -->
+                <div id="menuGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
         </main>
+    </div>
+
+    <!-- Menu Item Modal -->
+    <div id="menuModal" class="fixed inset-0 bg-black/80 modal-overlay hidden items-center justify-center z-50 overflow-y-auto py-8">
+        <div class="bg-stone-900 border border-stone-700 w-full max-w-2xl mx-4 my-auto">
+            <div class="p-6 border-b border-stone-800 flex items-center justify-between">
+                <h3 id="menuModalTitle" class="text-xl gold tracking-wider">DODAJ JELO</h3>
+                <button onclick="closeMenuModal()" class="text-stone-500 hover:text-stone-300 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="menuForm" onsubmit="handleMenuSubmit(event)" class="p-6 space-y-4">
+                <input type="hidden" id="menuItemId">
+
+                <!-- Row 1: Name and Category -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-stone-500 mb-2 tracking-wider">NAZIV JELA *</label>
+                        <input type="text" id="menuItemName" required
+                            class="w-full p-3 bg-stone-800 border border-stone-700 text-stone-200 focus:border-amber-500 outline-none"
+                            placeholder="npr. Tuna Tartare">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-stone-500 mb-2 tracking-wider">KATEGORIJA *</label>
+                        <select id="menuItemCategory" required class="w-full p-3 bg-stone-800 border border-stone-700 text-stone-200 focus:border-amber-500 outline-none">
+                            <option value="0">Predjelo</option>
+                            <option value="1">Juha</option>
+                            <option value="2">Salata</option>
+                            <option value="3">Tjestenina</option>
+                            <option value="4">Riba</option>
+                            <option value="5">Meso</option>
+                            <option value="6">Desert</option>
+                            <option value="7">Piće</option>
+                            <option value="8">Specijalitet</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 2: Description -->
+                <div>
+                    <label class="block text-xs text-stone-500 mb-2 tracking-wider">OPIS</label>
+                    <textarea id="menuItemDescription" rows="3"
+                        class="w-full p-3 bg-stone-800 border border-stone-700 text-stone-200 focus:border-amber-500 outline-none resize-none"
+                        placeholder="Opis jela, sastojci..."></textarea>
+                </div>
+
+                <!-- Row 3: Price, Discount, Sort Order -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs text-stone-500 mb-2 tracking-wider">CIJENA (EUR) *</label>
+                        <input type="number" id="menuItemPrice" required step="0.01" min="0"
+                            class="w-full p-3 bg-stone-800 border border-stone-700 text-stone-200 focus:border-amber-500 outline-none"
+                            placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-stone-500 mb-2 tracking-wider">POPUST (%)</label>
+                        <input type="number" id="menuItemDiscount" step="1" min="0" max="100" value="0"
+                            class="w-full p-3 bg-stone-800 border border-stone-700 text-stone-200 focus:border-amber-500 outline-none"
+                            placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-stone-500 mb-2 tracking-wider">POPUST DO</label>
+                        <input type="date" id="menuItemDiscountEnd"
+                            class="w-full p-3 bg-stone-800 border border-stone-700 text-stone-200 focus:border-amber-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-stone-500 mb-2 tracking-wider">REDOSLIJED</label>
+                        <input type="number" id="menuItemSortOrder" min="0" value="0"
+                            class="w-full p-3 bg-stone-800 border border-stone-700 text-stone-200 focus:border-amber-500 outline-none"
+                            placeholder="0">
+                    </div>
+                </div>
+
+                <!-- Row 3b: Allergens -->
+                <div>
+                    <label class="block text-xs text-stone-500 mb-2 tracking-wider">ALERGENI</label>
+                    <input type="text" id="menuItemAllergens"
+                        class="w-full p-3 bg-stone-800 border border-stone-700 text-stone-200 focus:border-amber-500 outline-none"
+                        placeholder="gluten, mlijeko...">
+                </div>
+
+                <!-- Row 4: Image URL -->
+                <div>
+                    <label class="block text-xs text-stone-500 mb-2 tracking-wider">URL SLIKE</label>
+                    <div class="flex gap-2">
+                        <input type="url" id="menuItemImage"
+                            class="flex-1 p-3 bg-stone-800 border border-stone-700 text-stone-200 focus:border-amber-500 outline-none"
+                            placeholder="https://images.unsplash.com/..."
+                            oninput="previewMenuImage(this.value)">
+                        <button type="button" onclick="testImageUrl()" class="px-4 py-2 border border-stone-600 text-stone-400 hover:border-amber-500 hover:text-amber-500 transition text-sm">
+                            TEST
+                        </button>
+                    </div>
+                    <div id="imagePreviewContainer" class="mt-3 hidden">
+                        <img id="imagePreview" class="h-32 w-48 object-cover rounded border border-stone-700" alt="Preview">
+                    </div>
+                </div>
+
+                <!-- Row 5: Dietary Options and Availability -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <label class="flex items-center gap-3 p-3 bg-stone-800/50 border border-stone-700 cursor-pointer hover:border-stone-600 transition">
+                        <input type="checkbox" id="menuItemAvailable" checked class="w-5 h-5 accent-amber-500">
+                        <span class="text-stone-300 text-sm">Dostupno</span>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 bg-stone-800/50 border border-stone-700 cursor-pointer hover:border-stone-600 transition">
+                        <input type="checkbox" id="menuItemVegetarian" class="w-5 h-5 accent-green-500">
+                        <span class="text-stone-300 text-sm">Vegetarijansko</span>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 bg-stone-800/50 border border-stone-700 cursor-pointer hover:border-stone-600 transition">
+                        <input type="checkbox" id="menuItemVegan" class="w-5 h-5 accent-green-500">
+                        <span class="text-stone-300 text-sm">Vegansko</span>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 bg-stone-800/50 border border-stone-700 cursor-pointer hover:border-stone-600 transition">
+                        <input type="checkbox" id="menuItemGlutenFree" class="w-5 h-5 accent-blue-500">
+                        <span class="text-stone-300 text-sm">Bez glutena</span>
+                    </label>
+                </div>
+
+                <div id="menuFormError" class="text-red-400 text-sm hidden"></div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeMenuModal()" class="flex-1 p-4 border border-stone-600 text-stone-400 hover:border-stone-500 transition tracking-wider">
+                        ODUSTANI
+                    </button>
+                    <button type="submit" class="flex-1 p-4 bg-gold text-black font-medium tracking-wider hover:bg-amber-400 transition">
+                        SPREMI
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black/80 modal-overlay hidden items-center justify-center z-50">
+        <div class="bg-stone-900 border border-stone-700 w-full max-w-md mx-4 p-8 text-center">
+            <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-red-900/30 flex items-center justify-center">
+                <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </div>
+            <h3 class="text-xl gold mb-3">Obrisati jelo?</h3>
+            <p id="deleteItemName" class="text-stone-400 mb-6"></p>
+            <p class="text-stone-500 text-sm mb-8">Ova radnja se ne može poništiti.</p>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()" class="flex-1 p-4 border border-stone-600 text-stone-400 hover:border-stone-500 transition tracking-wider">
+                    ODUSTANI
+                </button>
+                <button onclick="confirmDelete()" class="flex-1 p-4 bg-red-600 text-white font-medium tracking-wider hover:bg-red-500 transition">
+                    OBRIŠI
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -349,11 +556,26 @@
             if (tab === 'schedule') loadSchedule();
             if (tab === 'overrides') loadDateOverrides();
             if (tab === 'orders') loadOrders();
+            if (tab === 'menu') loadMenuItems();
         }
 
         // ============= DATA LOADING =============
         async function loadAllData() {
-            await Promise.all([loadReservations(), loadUsers(), loadOrders()]);
+            await Promise.all([loadReservations(), loadUsers(), loadOrders(), loadMenuItemsCount()]);
+        }
+
+        async function loadMenuItemsCount() {
+            try {
+                const response = await fetch('/api/admin/menu', {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                if (response.ok) {
+                    const items = await response.json();
+                    document.getElementById('totalMenuItems').textContent = items.length;
+                }
+            } catch (error) {
+                console.error(error);
+            }
         }
 
         async function loadReservations() {
@@ -854,6 +1076,428 @@
                 if (response.status === 401) { logout(); return; }
                 if (response.ok) loadDateOverrides();
             } catch {
+                alert('Greška pri brisanju');
+            }
+        }
+
+        // ============= MENU MANAGEMENT =============
+        let menuItemsData = [];
+        let deleteItemId = null;
+
+        const categoryLabels = {
+            'Appetizer': 'Predjelo',
+            'Soup': 'Juha',
+            'Salad': 'Salata',
+            'Pasta': 'Tjestenina',
+            'Fish': 'Riba',
+            'Meat': 'Meso',
+            'Dessert': 'Desert',
+            'Beverage': 'Piće',
+            'Special': 'Specijalitet'
+        };
+
+        const categoryColors = {
+            'Appetizer': 'bg-orange-900/30 text-orange-400',
+            'Soup': 'bg-yellow-900/30 text-yellow-400',
+            'Salad': 'bg-green-900/30 text-green-400',
+            'Pasta': 'bg-amber-900/30 text-amber-400',
+            'Fish': 'bg-blue-900/30 text-blue-400',
+            'Meat': 'bg-red-900/30 text-red-400',
+            'Dessert': 'bg-pink-900/30 text-pink-400',
+            'Beverage': 'bg-cyan-900/30 text-cyan-400',
+            'Special': 'bg-purple-900/30 text-purple-400'
+        };
+
+        async function loadMenuItems() {
+            const loading = document.getElementById('menuLoading');
+            const empty = document.getElementById('menuEmpty');
+            const grid = document.getElementById('menuGrid');
+
+            loading.classList.remove('hidden');
+            empty.classList.add('hidden');
+            grid.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/admin/menu', {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (response.status === 401) { logout(); return; }
+
+                menuItemsData = await response.json();
+                loading.classList.add('hidden');
+
+                // Update stat
+                document.getElementById('totalMenuItems').textContent = menuItemsData.length;
+
+                if (menuItemsData.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+
+                renderMenuItems();
+                grid.classList.remove('hidden');
+            } catch (error) {
+                loading.classList.add('hidden');
+                console.error(error);
+            }
+        }
+
+        function renderMenuItems() {
+            const grid = document.getElementById('menuGrid');
+            const filter = document.getElementById('menuCategoryFilter').value;
+
+            const filteredItems = filter === 'all'
+                ? menuItemsData
+                : menuItemsData.filter(item => item.category === filter);
+
+            if (filteredItems.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-12 text-stone-600">Nema jela u ovoj kategoriji</div>';
+                return;
+            }
+
+            grid.innerHTML = filteredItems.map(item => {
+                const catColor = categoryColors[item.category] || 'bg-stone-700 text-stone-300';
+                const catLabel = categoryLabels[item.category] || item.category;
+                const hasDiscount = item.discountPercent > 0 && (!item.discountEndDate || new Date(item.discountEndDate) > new Date());
+                const discountedPrice = hasDiscount ? (item.price * (1 - item.discountPercent / 100)).toFixed(2) : item.price.toFixed(2);
+
+                return `
+                    <div class="bg-stone-900/50 border ${hasDiscount ? 'border-green-700' : 'border-stone-800'} overflow-hidden group hover:border-stone-700 transition ${!item.isAvailable ? 'opacity-60' : ''}">
+                        <!-- Image -->
+                        <div class="relative h-40 bg-stone-800 overflow-hidden">
+                            ${item.imageUrl
+                                ? `<img src="${item.imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop'">`
+                                : '<div class="w-full h-full flex items-center justify-center text-stone-600"><svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>'}
+                            <div class="absolute top-2 left-2 flex gap-2 flex-wrap">
+                                <span class="px-2 py-1 text-xs ${catColor}">${catLabel}</span>
+                                ${!item.isAvailable ? '<span class="px-2 py-1 text-xs bg-red-900/50 text-red-400">Nedostupno</span>' : ''}
+                                ${hasDiscount ? `<span class="px-2 py-1 text-xs bg-green-600 text-white font-bold">-${item.discountPercent}%</span>` : ''}
+                            </div>
+                            <div class="absolute top-2 right-2 flex gap-1">
+                                ${item.isVegetarian ? '<span class="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-xs" title="Vegetarijansko">V</span>' : ''}
+                                ${item.isVegan ? '<span class="w-6 h-6 bg-green-700 rounded-full flex items-center justify-center text-white text-xs" title="Vegansko">VG</span>' : ''}
+                                ${item.isGlutenFree ? '<span class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs" title="Bez glutena">GF</span>' : ''}
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="p-4">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-medium text-stone-200 leading-tight">${item.name}</h4>
+                                <div class="ml-2 text-right whitespace-nowrap">
+                                    ${hasDiscount ? `
+                                        <span class="text-xs text-stone-500 line-through">${item.price.toFixed(2)} €</span>
+                                        <span class="text-lg text-green-400 font-medium block">${discountedPrice} €</span>
+                                    ` : `
+                                        <span class="text-lg gold font-medium">${item.price.toFixed(2)} €</span>
+                                    `}
+                                </div>
+                            </div>
+                            ${hasDiscount && item.discountEndDate ? `<p class="text-xs text-green-500 mb-2">Popust do: ${new Date(item.discountEndDate).toLocaleDateString('hr-HR')}</p>` : ''}
+                            <p class="text-stone-500 text-sm line-clamp-2 mb-3">${item.description || 'Bez opisa'}</p>
+                            ${item.allergens ? `<p class="text-xs text-stone-600 mb-3">Alergeni: ${item.allergens}</p>` : ''}
+
+                            <!-- Actions -->
+                            <div class="flex gap-2 pt-3 border-t border-stone-800">
+                                <button onclick="toggleAvailability(${item.id}, ${!item.isAvailable})"
+                                    class="flex-1 px-3 py-2 text-xs border ${item.isAvailable ? 'border-red-900 text-red-400 hover:bg-red-900/30' : 'border-green-900 text-green-400 hover:bg-green-900/30'} transition"
+                                    title="${item.isAvailable ? 'Sakrij s menija' : 'Prikaži na meniju'}">
+                                    ${item.isAvailable ? 'SAKRIJ' : 'PRIKAŽI'}
+                                </button>
+                                <button onclick="quickDiscount(${item.id})"
+                                    class="px-3 py-2 text-xs border ${hasDiscount ? 'border-green-600 bg-green-900/30 text-green-400' : 'border-stone-600 text-stone-400 hover:border-green-600 hover:text-green-400'} transition"
+                                    title="${hasDiscount ? 'Ukloni popust' : 'Brzi popust'}">
+                                    %
+                                </button>
+                                <button onclick="editMenuItem(${item.id})"
+                                    class="flex-1 px-3 py-2 text-xs border border-amber-900 text-amber-400 hover:bg-amber-900/30 transition"
+                                    title="Uredi sve detalje">
+                                    UREDI
+                                </button>
+                                <button onclick="openDeleteModal(${item.id}, '${item.name.replace(/'/g, "\\'")}')"
+                                    class="px-3 py-2 text-xs border border-red-900 text-red-400 hover:bg-red-900/30 transition"
+                                    title="Obriši jelo">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterMenuByCategory() {
+            renderMenuItems();
+        }
+
+        function openMenuModal(itemId = null) {
+            const modal = document.getElementById('menuModal');
+            const title = document.getElementById('menuModalTitle');
+            const form = document.getElementById('menuForm');
+            const error = document.getElementById('menuFormError');
+
+            form.reset();
+            error.classList.add('hidden');
+            document.getElementById('menuItemId').value = '';
+            document.getElementById('menuItemAvailable').checked = true;
+            document.getElementById('menuItemDiscount').value = 0;
+            document.getElementById('menuItemDiscountEnd').value = '';
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+
+            if (itemId) {
+                const item = menuItemsData.find(i => i.id === itemId);
+                if (item) {
+                    title.textContent = 'UREDI JELO';
+                    document.getElementById('menuItemId').value = item.id;
+                    document.getElementById('menuItemName').value = item.name;
+                    document.getElementById('menuItemDescription').value = item.description || '';
+                    document.getElementById('menuItemPrice').value = item.price;
+                    document.getElementById('menuItemDiscount').value = item.discountPercent || 0;
+                    document.getElementById('menuItemDiscountEnd').value = item.discountEndDate ? item.discountEndDate.split('T')[0] : '';
+                    document.getElementById('menuItemCategory').value = getCategoryValue(item.category);
+                    document.getElementById('menuItemImage').value = item.imageUrl || '';
+                    document.getElementById('menuItemSortOrder').value = item.sortOrder || 0;
+                    document.getElementById('menuItemAllergens').value = item.allergens || '';
+                    document.getElementById('menuItemAvailable').checked = item.isAvailable;
+                    document.getElementById('menuItemVegetarian').checked = item.isVegetarian;
+                    document.getElementById('menuItemVegan').checked = item.isVegan;
+                    document.getElementById('menuItemGlutenFree').checked = item.isGlutenFree;
+
+                    if (item.imageUrl) {
+                        previewMenuImage(item.imageUrl);
+                    }
+                }
+            } else {
+                title.textContent = 'DODAJ JELO';
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeMenuModal() {
+            const modal = document.getElementById('menuModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function getCategoryValue(category) {
+            const map = {
+                'Appetizer': 0, 'Soup': 1, 'Salad': 2, 'Pasta': 3,
+                'Fish': 4, 'Meat': 5, 'Dessert': 6, 'Beverage': 7, 'Special': 8
+            };
+            return map[category] || 0;
+        }
+
+        function previewMenuImage(url) {
+            const container = document.getElementById('imagePreviewContainer');
+            const preview = document.getElementById('imagePreview');
+
+            if (url && url.startsWith('http')) {
+                preview.src = url;
+                preview.onerror = () => container.classList.add('hidden');
+                preview.onload = () => container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function testImageUrl() {
+            const url = document.getElementById('menuItemImage').value;
+            if (url) {
+                window.open(url, '_blank');
+            }
+        }
+
+        async function handleMenuSubmit(event) {
+            event.preventDefault();
+            const error = document.getElementById('menuFormError');
+            error.classList.add('hidden');
+
+            const itemId = document.getElementById('menuItemId').value;
+            const discountEnd = document.getElementById('menuItemDiscountEnd').value;
+            const data = {
+                name: document.getElementById('menuItemName').value,
+                description: document.getElementById('menuItemDescription').value,
+                price: parseFloat(document.getElementById('menuItemPrice').value),
+                discountPercent: parseFloat(document.getElementById('menuItemDiscount').value) || 0,
+                discountEndDate: discountEnd ? discountEnd + 'T23:59:59Z' : null,
+                category: parseInt(document.getElementById('menuItemCategory').value),
+                imageUrl: document.getElementById('menuItemImage').value,
+                sortOrder: parseInt(document.getElementById('menuItemSortOrder').value) || 0,
+                allergens: document.getElementById('menuItemAllergens').value,
+                isAvailable: document.getElementById('menuItemAvailable').checked,
+                isVegetarian: document.getElementById('menuItemVegetarian').checked,
+                isVegan: document.getElementById('menuItemVegan').checked,
+                isGlutenFree: document.getElementById('menuItemGlutenFree').checked
+            };
+
+            try {
+                const url = itemId ? `/api/admin/menu/${itemId}` : '/api/admin/menu';
+                const method = itemId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.status === 401) { logout(); return; }
+
+                if (response.ok) {
+                    closeMenuModal();
+                    loadMenuItems();
+                } else {
+                    const result = await response.json();
+                    error.textContent = result.error || 'Greška pri spremanju';
+                    error.classList.remove('hidden');
+                }
+            } catch (err) {
+                error.textContent = 'Greška pri povezivanju';
+                error.classList.remove('hidden');
+            }
+        }
+
+        function editMenuItem(id) {
+            openMenuModal(id);
+        }
+
+        async function toggleAvailability(id, available) {
+            const item = menuItemsData.find(i => i.id === id);
+            if (!item) return;
+
+            const data = {
+                name: item.name,
+                description: item.description,
+                price: item.price,
+                discountPercent: item.discountPercent || 0,
+                discountEndDate: item.discountEndDate || null,
+                category: getCategoryValue(item.category),
+                imageUrl: item.imageUrl,
+                sortOrder: item.sortOrder,
+                allergens: item.allergens,
+                isAvailable: available,
+                isVegetarian: item.isVegetarian,
+                isVegan: item.isVegan,
+                isGlutenFree: item.isGlutenFree
+            };
+
+            try {
+                const response = await fetch(`/api/admin/menu/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.status === 401) { logout(); return; }
+                if (response.ok) loadMenuItems();
+            } catch (error) {
+                alert('Greška pri ažuriranju');
+            }
+        }
+
+        async function quickDiscount(id) {
+            const item = menuItemsData.find(i => i.id === id);
+            if (!item) return;
+
+            const hasDiscount = item.discountPercent > 0 && (!item.discountEndDate || new Date(item.discountEndDate) > new Date());
+
+            let discountPercent = 0;
+            let discountEndDate = null;
+
+            if (!hasDiscount) {
+                const percent = prompt('Unesite postotak popusta (npr. 10, 20, 30):', '10');
+                if (percent === null) return;
+
+                discountPercent = parseFloat(percent);
+                if (isNaN(discountPercent) || discountPercent <= 0 || discountPercent > 100) {
+                    alert('Molimo unesite validan postotak (1-100)');
+                    return;
+                }
+
+                const days = prompt('Trajanje popusta u danima (ostavite prazno za neograničeno):', '7');
+                if (days !== null && days !== '') {
+                    const daysNum = parseInt(days);
+                    if (!isNaN(daysNum) && daysNum > 0) {
+                        const endDate = new Date();
+                        endDate.setDate(endDate.getDate() + daysNum);
+                        discountEndDate = endDate.toISOString();
+                    }
+                }
+            }
+
+            const data = {
+                name: item.name,
+                description: item.description,
+                price: item.price,
+                discountPercent: discountPercent,
+                discountEndDate: discountEndDate,
+                category: getCategoryValue(item.category),
+                imageUrl: item.imageUrl,
+                sortOrder: item.sortOrder,
+                allergens: item.allergens,
+                isAvailable: item.isAvailable,
+                isVegetarian: item.isVegetarian,
+                isVegan: item.isVegan,
+                isGlutenFree: item.isGlutenFree
+            };
+
+            try {
+                const response = await fetch(`/api/admin/menu/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.status === 401) { logout(); return; }
+                if (response.ok) loadMenuItems();
+            } catch (error) {
+                alert('Greška pri ažuriranju popusta');
+            }
+        }
+
+        function openDeleteModal(id, name) {
+            deleteItemId = id;
+            document.getElementById('deleteItemName').textContent = name;
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDeleteModal() {
+            deleteItemId = null;
+            const modal = document.getElementById('deleteModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function confirmDelete() {
+            if (!deleteItemId) return;
+
+            try {
+                const response = await fetch(`/api/admin/menu/${deleteItemId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (response.status === 401) { logout(); return; }
+                if (response.ok) {
+                    closeDeleteModal();
+                    loadMenuItems();
+                }
+            } catch (error) {
                 alert('Greška pri brisanju');
             }
         }

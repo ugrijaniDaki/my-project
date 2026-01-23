@@ -60,6 +60,10 @@ builder.Services.AddDbContext<AuraDbContext>(options =>
 
 var app = builder.Build();
 
+// Log email configuration at startup
+var resendKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? "";
+Console.WriteLine($"🚀 Email service config: RESEND_API_KEY = {(string.IsNullOrEmpty(resendKey) ? "NOT SET" : $"SET (length: {resendKey.Length})")}");
+
 app.UseCors();
 
 // Mobile detection and redirect to Angular app
@@ -1671,9 +1675,12 @@ public static class EmailService
 
     public static async Task SendWelcomeEmailAsync(string toEmail, string userName)
     {
+        Console.WriteLine($"📧 SendWelcomeEmailAsync called for {toEmail}");
+        Console.WriteLine($"📧 ResendApiKey configured: {!string.IsNullOrEmpty(ResendApiKey)} (length: {ResendApiKey.Length})");
+
         if (string.IsNullOrEmpty(ResendApiKey) && string.IsNullOrEmpty(SmtpUser))
         {
-            Console.WriteLine($"Email not configured - would send welcome email to {toEmail}");
+            Console.WriteLine($"❌ Email not configured - would send welcome email to {toEmail}");
             return;
         }
 
@@ -1832,6 +1839,9 @@ public static class EmailService
 
     private static async Task SendViaResendAsync(string toEmail, string subject, string htmlBody)
     {
+        Console.WriteLine($"📧 SendViaResendAsync starting for {toEmail}");
+        Console.WriteLine($"📧 Using FROM: {FromName} <{FromEmail}>");
+
         try
         {
             var request = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
