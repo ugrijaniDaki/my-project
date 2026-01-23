@@ -7,6 +7,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { I18nService } from '../../core/services/i18n.service';
 import { ScheduleResponse, TimeSlot, ReservationRequest } from '../../core/models/reservation.model';
 import { AuthDialogComponent } from '../../shared/components/auth-modal/auth-dialog.component';
 
@@ -749,6 +750,7 @@ export class ReservationComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
+  readonly i18n = inject(I18nService);
 
   // Calendar
   currentMonth = new Date().getMonth();

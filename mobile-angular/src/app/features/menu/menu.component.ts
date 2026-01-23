@@ -8,7 +8,8 @@ import { MatBottomSheetModule, MatBottomSheet } from '@angular/material/bottom-s
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiService } from '../../core/services/api.service';
 import { CartService } from '../../core/services/cart.service';
-import { MenuItem, CATEGORY_NAMES, CATEGORY_ORDER, MenuCategory } from '../../core/models/menu-item.model';
+import { I18nService } from '../../core/services/i18n.service';
+import { MenuItem, CATEGORY_ORDER, MenuCategory } from '../../core/models/menu-item.model';
 import { CartSheetComponent } from './components/cart-sheet.component';
 
 @Component({
@@ -44,8 +45,7 @@ import { CartSheetComponent } from './components/cart-sheet.component';
       @if (loading) {
         <div class="loading">
           <mat-icon class="spin">sync</mat-icon>
-          <p>Učitavanje menija...</p>
-          <p class="loading-hint">Molimo pričekajte, server se pokreće...</p>
+          <p>{{ i18n.t().menu.loading }}</p>
         </div>
       }
 
@@ -53,10 +53,10 @@ import { CartSheetComponent } from './components/cart-sheet.component';
       @if (error && !loading) {
         <div class="error-state">
           <mat-icon>cloud_off</mat-icon>
-          <p>Greška pri učitavanju</p>
+          <p>{{ i18n.t().menu.error }}</p>
           <button class="retry-btn" (click)="loadMenu()">
             <mat-icon>refresh</mat-icon>
-            Pokušaj ponovo
+            {{ i18n.t().menu.retry }}
           </button>
         </div>
       }
@@ -81,7 +81,7 @@ import { CartSheetComponent } from './components/cart-sheet.component';
                   <p class="item-description">{{ item.description }}</p>
                   <button class="add-button" (click)="addToCart(item)">
                     <mat-icon>add</mat-icon>
-                    Dodaj
+                    {{ i18n.t().menu.addToCart }}
                   </button>
                 </div>
                 @if (item.imageUrl) {
@@ -422,6 +422,7 @@ export class MenuComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
+  readonly i18n = inject(I18nService);
 
   menuItems: MenuItem[] = [];
   categories = CATEGORY_ORDER;
@@ -461,12 +462,19 @@ export class MenuComponent implements OnInit {
   }
 
   getCategoryName(category: MenuCategory): string {
-    return CATEGORY_NAMES[category] || category;
+    const categories = this.i18n.t().menu.categories;
+    const categoryMap: Record<string, string> = {
+      'Predjelo': categories.predjelo,
+      'Glavno jelo': categories.glavnoJelo,
+      'Desert': categories.desert,
+      'Piće': categories.pice
+    };
+    return categoryMap[category] || category;
   }
 
   addToCart(item: MenuItem) {
     this.cartService.addToCart(item);
-    this.snackBar.open(`${item.name} dodano u košaricu`, '', {
+    this.snackBar.open(`${item.name} ✓`, '', {
       duration: 1500,
       horizontalPosition: 'center',
       verticalPosition: 'top',

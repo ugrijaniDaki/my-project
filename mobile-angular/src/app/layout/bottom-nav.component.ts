@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatIconModule } from '@angular/material/icon';
+import { I18nService } from '../core/services/i18n.service';
 
 @Component({
   selector: 'app-bottom-nav',
@@ -17,15 +18,15 @@ import { MatIconModule } from '@angular/material/icon';
       <nav class="bottom-nav">
         <a routerLink="/home" routerLinkActive="active" class="nav-item">
           <mat-icon>home</mat-icon>
-          <span>Početna</span>
+          <span>{{ i18n.t().nav.home }}</span>
         </a>
         <a routerLink="/menu" routerLinkActive="active" class="nav-item">
           <mat-icon>restaurant_menu</mat-icon>
-          <span>Menu</span>
+          <span>{{ i18n.t().nav.menu }}</span>
         </a>
         <a routerLink="/reservation" routerLinkActive="active" class="nav-item">
           <mat-icon>event</mat-icon>
-          <span>Rezervacija</span>
+          <span>{{ i18n.t().nav.reservation }}</span>
         </a>
       </nav>
     </div>
@@ -99,4 +100,6 @@ import { MatIconModule } from '@angular/material/icon';
     }
   `]
 })
-export class BottomNavComponent {}
+export class BottomNavComponent {
+  readonly i18n = inject(I18nService);
+}

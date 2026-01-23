@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
 import { AuthService } from '../../../core/services/auth.service';
+import { I18nService } from '../../../core/services/i18n.service';
 
 @Component({
   selector: 'app-auth-dialog',
@@ -24,28 +25,28 @@ import { AuthService } from '../../../core/services/auth.service';
       @if (mode === 'login') {
         <div class="form-container">
           <div class="form-title">
-            <h2>Prijava</h2>
-            <p>Prijavite se za nastavak</p>
+            <h2>{{ i18n.t().auth.loginTitle }}</h2>
+            <p>{{ i18n.t().auth.loginSubtitle }}</p>
           </div>
 
           <form class="auth-form" (ngSubmit)="login()">
             <input type="email" [(ngModel)]="loginEmail" name="email"
-                   placeholder="Email adresa" required class="form-input">
+                   [placeholder]="i18n.t().auth.email" required class="form-input">
             <input type="password" [(ngModel)]="loginPassword" name="password"
-                   placeholder="Lozinka" required class="form-input">
+                   [placeholder]="i18n.t().auth.password" required class="form-input">
 
             @if (error) {
               <div class="error-message">{{ error }}</div>
             }
 
             <button type="submit" class="submit-btn" [disabled]="loading">
-              {{ loading ? 'Učitavam...' : 'Prijavi se' }}
+              {{ loading ? i18n.t().auth.loggingIn : i18n.t().auth.login }}
             </button>
           </form>
 
           <div class="switch-mode">
-            <p>Nemate račun?</p>
-            <button (click)="mode = 'register'">Registrirajte se</button>
+            <p>{{ i18n.t().auth.noAccount }}</p>
+            <button (click)="mode = 'register'">{{ i18n.t().auth.register }}</button>
           </div>
         </div>
       }
@@ -54,32 +55,32 @@ import { AuthService } from '../../../core/services/auth.service';
       @if (mode === 'register') {
         <div class="form-container">
           <div class="form-title">
-            <h2>Registracija</h2>
-            <p>Kreirajte račun za rezervacije</p>
+            <h2>{{ i18n.t().auth.registerTitle }}</h2>
+            <p>{{ i18n.t().auth.registerSubtitle }}</p>
           </div>
 
           <form class="auth-form" (ngSubmit)="register()">
             <input type="text" [(ngModel)]="regName" name="name"
-                   placeholder="Ime i prezime" required class="form-input">
+                   [placeholder]="i18n.t().auth.name" required class="form-input">
             <input type="email" [(ngModel)]="regEmail" name="email"
-                   placeholder="Email adresa" required class="form-input">
+                   [placeholder]="i18n.t().auth.email" required class="form-input">
             <input type="tel" [(ngModel)]="regPhone" name="phone"
-                   placeholder="Telefon" required class="form-input">
+                   [placeholder]="i18n.t().auth.phone" required class="form-input">
             <input type="password" [(ngModel)]="regPassword" name="password"
-                   placeholder="Lozinka (min 6 znakova)" required minlength="6" class="form-input">
+                   [placeholder]="i18n.t().auth.passwordHint" required minlength="6" class="form-input">
 
             @if (error) {
               <div class="error-message">{{ error }}</div>
             }
 
             <button type="submit" class="submit-btn" [disabled]="loading">
-              {{ loading ? 'Učitavam...' : 'Registriraj se' }}
+              {{ loading ? i18n.t().auth.registering : i18n.t().auth.register }}
             </button>
           </form>
 
           <div class="switch-mode">
-            <p>Imate račun?</p>
-            <button (click)="mode = 'login'">Prijavite se</button>
+            <p>{{ i18n.t().auth.hasAccount }}</p>
+            <button (click)="mode = 'login'">{{ i18n.t().auth.login }}</button>
           </div>
         </div>
       }
@@ -224,6 +225,7 @@ export class AuthDialogComponent {
   private dialogRef = inject(MatDialogRef<AuthDialogComponent>);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
+  readonly i18n = inject(I18nService);
 
   mode: 'login' | 'register' = 'register';
   error = '';
@@ -245,7 +247,7 @@ export class AuthDialogComponent {
 
   login() {
     if (!this.loginEmail || !this.loginPassword) {
-      this.error = 'Molimo popunite sva polja';
+      this.error = this.i18n.t().auth.fillAllFields;
       this.cdr.detectChanges();
       return;
     }
@@ -265,7 +267,7 @@ export class AuthDialogComponent {
       error: (err) => {
         this.ngZone.run(() => {
           this.loading = false;
-          this.error = err.error?.error || 'Greška pri prijavi';
+          this.error = err.error?.error || this.i18n.t().auth.loginError;
           this.cdr.detectChanges();
         });
       }
@@ -274,13 +276,13 @@ export class AuthDialogComponent {
 
   register() {
     if (!this.regName || !this.regEmail || !this.regPhone || !this.regPassword) {
-      this.error = 'Molimo popunite sva polja';
+      this.error = this.i18n.t().auth.fillAllFields;
       this.cdr.detectChanges();
       return;
     }
 
     if (this.regPassword.length < 6) {
-      this.error = 'Lozinka mora imati najmanje 6 znakova';
+      this.error = this.i18n.t().auth.passwordTooShort;
       this.cdr.detectChanges();
       return;
     }
@@ -305,7 +307,7 @@ export class AuthDialogComponent {
       error: (err) => {
         this.ngZone.run(() => {
           this.loading = false;
-          this.error = err.error?.error || 'Greška pri registraciji';
+          this.error = err.error?.error || this.i18n.t().auth.registerError;
           this.cdr.detectChanges();
         });
       }

@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { I18nService, Language } from '../../core/services/i18n.service';
 
 @Component({
   selector: 'app-home',
@@ -10,29 +11,37 @@ import { MatIconModule } from '@angular/material/icon';
   imports: [CommonModule, RouterModule, MatButtonModule, MatIconModule],
   template: `
     <div class="home-page">
+      <!-- Language Selector -->
+      <div class="language-selector">
+        @for (lang of i18n.languages; track lang.code) {
+          <button
+            class="lang-btn"
+            [class.active]="i18n.language() === lang.code"
+            (click)="i18n.setLanguage(lang.code)">
+            {{ lang.flag }}
+          </button>
+        }
+      </div>
+
       <!-- Hero Section -->
       <section class="hero">
         <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=2070"
              alt="Restaurant" class="hero-bg">
         <div class="hero-overlay"></div>
         <div class="hero-content">
-          <p class="season">Zagreb — Sezona 2026</p>
-          <h1>Okusi tišine.</h1>
+          <p class="season">{{ i18n.t().home.season }}</p>
+          <h1>{{ i18n.t().home.heroTitle }}</h1>
           <a routerLink="/reservation" class="cta-button">
-            Rezervirajte svoj stol
+            {{ i18n.t().home.ctaButton }}
           </a>
         </div>
       </section>
 
       <!-- Philosophy Section -->
       <section class="philosophy">
-        <p class="label">Filozofija</p>
-        <h2>Minimalizam na tanjuru,<br>maksimalizam u okusu.</h2>
-        <p class="description">
-          Aura nije samo restoran, već putovanje kroz osjetila.
-          Svaka namirnica u sezoni 2026. pažljivo je odabrana s lokalnih OPG-ova,
-          tretirana s poštovanjem i pretvorena u umjetnost.
-        </p>
+        <p class="label">{{ i18n.t().home.philosophy }}</p>
+        <h2 [innerHTML]="i18n.t().home.philosophyTitle.replace('\\n', '<br>')"></h2>
+        <p class="description">{{ i18n.t().home.philosophyText }}</p>
       </section>
 
       <!-- Image Section -->
@@ -44,15 +53,15 @@ import { MatIconModule } from '@angular/material/icon';
       <!-- Quote Section -->
       <section class="quote-section">
         <div class="quote-card">
-          <p>"Hrana koja priča priču o zemlji, moru i ljudima."</p>
+          <p>{{ i18n.t().home.quote }}</p>
         </div>
       </section>
 
       <!-- CTA Section -->
       <section class="cta-section">
-        <h3>Pridružite nam se</h3>
+        <h3>{{ i18n.t().home.joinUs }}</h3>
         <a routerLink="/reservation" class="cta-button-dark">
-          Osigurajte termin
+          {{ i18n.t().home.secureSpot }}
         </a>
       </section>
 
@@ -60,24 +69,61 @@ import { MatIconModule } from '@angular/material/icon';
       <section class="info-section">
         <div class="info-item">
           <mat-icon>place</mat-icon>
-          <p>Trg Kralja Tomislava 1, Zagreb</p>
+          <p>{{ i18n.t().home.address }}</p>
         </div>
         <div class="info-item">
           <mat-icon>schedule</mat-icon>
-          <p>Utorak - Subota, 18:00 - 00:00</p>
+          <p>{{ i18n.t().home.hours }}</p>
         </div>
       </section>
 
       <!-- Footer -->
       <footer class="footer">
         <p class="logo">AURA</p>
-        <p class="copyright">© 2026 Aura Fine Dining</p>
+        <p class="copyright">{{ i18n.t().home.copyright }}</p>
       </footer>
     </div>
   `,
   styles: [`
     .home-page {
       background: #fafaf9;
+    }
+
+    .language-selector {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 100;
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 6px;
+      border-radius: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .lang-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: transparent;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &.active {
+        background: #1C1917;
+        transform: scale(1.1);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
     }
 
     .hero {
@@ -281,4 +327,6 @@ import { MatIconModule } from '@angular/material/icon';
     }
   `]
 })
-export class HomeComponent {}
+export class HomeComponent {
+  readonly i18n = inject(I18nService);
+}
