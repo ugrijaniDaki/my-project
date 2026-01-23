@@ -106,30 +106,30 @@
             <!-- Register Form -->
             <div id="register-form-container">
                 <div class="text-center mb-8">
-                    <h2 class="text-xl font-light tracking-[0.3em] uppercase">Registracija</h2>
-                    <p class="text-xs text-stone-400 mt-2">Kreirajte račun za rezervacije</p>
+                    <h2 class="text-xl font-light tracking-[0.3em] uppercase" data-i18n="register">Registracija</h2>
+                    <p class="text-xs text-stone-400 mt-2" data-i18n="registerSubtitle">Kreirajte račun za rezervacije</p>
                 </div>
 
                 <form id="register-form" class="space-y-4">
-                    <input type="text" id="reg-name" placeholder="Ime i prezime" required
+                    <input type="text" id="reg-name" data-i18n="fullName" required
                         class="w-full bg-stone-50 border-none rounded-xl p-4 text-sm focus:ring-1 focus:ring-stone-200 outline-none">
-                    <input type="email" id="reg-email" placeholder="Email adresa" required
+                    <input type="email" id="reg-email" data-i18n="email" required
                         class="w-full bg-stone-50 border-none rounded-xl p-4 text-sm focus:ring-1 focus:ring-stone-200 outline-none">
-                    <input type="tel" id="reg-phone" placeholder="Telefon" required
+                    <input type="tel" id="reg-phone" data-i18n="phone" required
                         class="w-full bg-stone-50 border-none rounded-xl p-4 text-sm focus:ring-1 focus:ring-stone-200 outline-none">
-                    <input type="password" id="reg-password" placeholder="Lozinka (min 6 znakova)" required minlength="6"
+                    <input type="password" id="reg-password" data-i18n="passwordHint" required minlength="6"
                         class="w-full bg-stone-50 border-none rounded-xl p-4 text-sm focus:ring-1 focus:ring-stone-200 outline-none">
 
                     <div id="register-error" class="text-red-500 text-xs text-center hidden"></div>
 
-                    <button type="submit" class="w-full bg-stone-900 text-white py-4 rounded-xl hover:bg-stone-800 transition-all text-[10px] uppercase tracking-[0.3em]">
+                    <button type="submit" class="w-full bg-stone-900 text-white py-4 rounded-xl hover:bg-stone-800 transition-all text-[10px] uppercase tracking-[0.3em]" data-i18n="registerBtn">
                         Registriraj se
                     </button>
                 </form>
 
                 <div class="text-center mt-6 pt-4 border-t border-stone-100">
-                    <p class="text-xs text-stone-400">Imate račun?</p>
-                    <button onclick="showLogin()" class="text-xs text-stone-700 hover:text-stone-900 font-medium mt-1">
+                    <p class="text-xs text-stone-400" data-i18n="hasAccount">Imate račun?</p>
+                    <button onclick="showLogin()" class="text-xs text-stone-700 hover:text-stone-900 font-medium mt-1" data-i18n="loginLink">
                         Prijavite se
                     </button>
                 </div>
@@ -138,26 +138,26 @@
             <!-- Login Form -->
             <div id="login-form-container" class="hidden">
                 <div class="text-center mb-8">
-                    <h2 class="text-xl font-light tracking-[0.3em] uppercase">Prijava</h2>
-                    <p class="text-xs text-stone-400 mt-2">Prijavite se za nastavak</p>
+                    <h2 class="text-xl font-light tracking-[0.3em] uppercase" data-i18n="login">Prijava</h2>
+                    <p class="text-xs text-stone-400 mt-2" data-i18n="loginSubtitle">Prijavite se za nastavak</p>
                 </div>
 
                 <form id="login-form" class="space-y-4">
-                    <input type="email" id="login-email" placeholder="Email adresa" required
+                    <input type="email" id="login-email" data-i18n="email" required
                         class="w-full bg-stone-50 border-none rounded-xl p-4 text-sm focus:ring-1 focus:ring-stone-200 outline-none">
-                    <input type="password" id="login-password" placeholder="Lozinka" required
+                    <input type="password" id="login-password" data-i18n="password" required
                         class="w-full bg-stone-50 border-none rounded-xl p-4 text-sm focus:ring-1 focus:ring-stone-200 outline-none">
 
                     <div id="login-error" class="text-red-500 text-xs text-center hidden"></div>
 
-                    <button type="submit" class="w-full bg-stone-900 text-white py-4 rounded-xl hover:bg-stone-800 transition-all text-[10px] uppercase tracking-[0.3em]">
+                    <button type="submit" class="w-full bg-stone-900 text-white py-4 rounded-xl hover:bg-stone-800 transition-all text-[10px] uppercase tracking-[0.3em]" data-i18n="loginBtn">
                         Prijavi se
                     </button>
                 </form>
 
                 <div class="text-center mt-6 pt-4 border-t border-stone-100">
-                    <p class="text-xs text-stone-400">Nemate račun?</p>
-                    <button onclick="showRegister()" class="text-xs text-stone-700 hover:text-stone-900 font-medium mt-1">
+                    <p class="text-xs text-stone-400" data-i18n="noAccount">Nemate račun?</p>
+                    <button onclick="showRegister()" class="text-xs text-stone-700 hover:text-stone-900 font-medium mt-1" data-i18n="registerLink">
                         Registrirajte se
                     </button>
                 </div>
@@ -185,18 +185,18 @@
 
         <div id="booking-container">
             <header class="text-center mb-8">
-                <a href="/" class="absolute top-6 left-6 text-stone-400 hover:text-stone-800 transition-colors text-sm">
+                <a href="/" class="absolute top-6 left-6 text-stone-400 hover:text-stone-800 transition-colors text-sm" data-i18n="backHome">
                     ← Natrag
                 </a>
                 <h1 class="text-3xl font-light tracking-[0.4em] uppercase">Aura</h1>
                 <div class="w-12 h-[1px] bg-stone-300 mx-auto mt-4"></div>
-                <p class="text-[10px] text-stone-400 uppercase tracking-[0.2em] mt-4 italic">Sezona 2026.</p>
+                <p class="text-[10px] text-stone-400 uppercase tracking-[0.2em] mt-4 italic" data-i18n="season2026">Sezona 2026.</p>
             </header>
 
             <form id="res-form" class="space-y-6">
                 <!-- Calendar Section -->
                 <div class="space-y-3">
-                    <label class="block text-[9px] uppercase tracking-[0.2em] text-stone-400">Odaberite datum</label>
+                    <label class="block text-[9px] uppercase tracking-[0.2em] text-stone-400" data-i18n="selectDate">Odaberite datum</label>
 
                     <!-- Calendar Header -->
                     <div class="flex items-center justify-between mb-2">
@@ -234,19 +234,19 @@
                     <div class="flex flex-wrap justify-center gap-3 mt-3">
                         <div class="flex items-center gap-1">
                             <div class="w-3 h-3 rounded bg-emerald-100"></div>
-                            <span class="text-[9px] text-stone-500">Dostupno</span>
+                            <span class="text-[9px] text-stone-500" data-i18n="available">Dostupno</span>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="w-3 h-3 rounded bg-amber-100"></div>
-                            <span class="text-[9px] text-stone-500">Ograničeno</span>
+                            <span class="text-[9px] text-stone-500" data-i18n="limited">Ograničeno</span>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="w-3 h-3 rounded bg-red-100"></div>
-                            <span class="text-[9px] text-stone-500">Popunjeno</span>
+                            <span class="text-[9px] text-stone-500" data-i18n="full">Popunjeno</span>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="w-3 h-3 rounded bg-stone-200"></div>
-                            <span class="text-[9px] text-stone-500">Zatvoreno</span>
+                            <span class="text-[9px] text-stone-500" data-i18n="closed">Zatvoreno</span>
                         </div>
                     </div>
 
@@ -260,24 +260,24 @@
 
                 <!-- Slot selection -->
                 <div class="space-y-3" id="slot-container">
-                    <label class="block text-[9px] uppercase tracking-[0.2em] text-stone-400">Dostupni termini</label>
+                    <label class="block text-[9px] uppercase tracking-[0.2em] text-stone-400" data-i18n="availableSlots">Dostupni termini</label>
                     <div id="slots-loading" class="hidden text-center py-6">
                         <div class="inline-block w-6 h-6 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div>
-                        <p class="text-xs text-stone-400 mt-2">Učitavam termine...</p>
+                        <p class="text-xs text-stone-400 mt-2" data-i18n="loadingSlots">Učitavam termine...</p>
                     </div>
                     <div id="slots-closed" class="hidden text-center py-6 bg-red-50 rounded-2xl">
-                        <p class="text-red-600 text-sm font-medium">Zatvoreno</p>
+                        <p class="text-red-600 text-sm font-medium" data-i18n="closed">Zatvoreno</p>
                         <p id="closed-reason" class="text-red-400 text-xs mt-1"></p>
                     </div>
                     <div id="slots-list" class="grid grid-cols-3 gap-2">
-                        <p class="col-span-3 text-center text-stone-400 text-xs py-4">Nema dostupnih termina</p>
+                        <p class="col-span-3 text-center text-stone-400 text-xs py-4" data-i18n="noSlots">Nema dostupnih termina</p>
                     </div>
                     <input type="hidden" id="res-slot" required>
                 </div>
 
                 <!-- Broj gostiju -->
                 <div class="space-y-3">
-                    <label class="block text-[9px] uppercase tracking-[0.2em] text-stone-400">Broj gostiju</label>
+                    <label class="block text-[9px] uppercase tracking-[0.2em] text-stone-400" data-i18n="guests">Broj gostiju</label>
                     <div class="flex items-center justify-between border border-stone-100 rounded-2xl p-2">
                         <button type="button" onclick="updateGuests(-1)" class="w-12 h-12 flex items-center justify-center text-stone-300 hover:text-stone-800 transition-colors text-xl font-light">—</button>
                         <span id="guest-count" class="text-base font-medium">2</span>
@@ -287,23 +287,23 @@
 
                 <!-- Posebni zahtjevi -->
                 <div class="space-y-3">
-                    <label class="block text-[9px] uppercase tracking-[0.2em] text-stone-400">Posebni zahtjevi (opcionalno)</label>
-                    <textarea id="res-notes" placeholder="Alergije, posebne prigode..." rows="2" class="w-full bg-stone-50 border-none rounded-2xl p-4 text-sm focus:ring-1 focus:ring-stone-200 outline-none text-stone-600 resize-none"></textarea>
+                    <label class="block text-[9px] uppercase tracking-[0.2em] text-stone-400" data-i18n="specialRequests">Posebni zahtjevi (opcionalno)</label>
+                    <textarea id="res-notes" data-i18n="specialRequestsHint" rows="2" class="w-full bg-stone-50 border-none rounded-2xl p-4 text-sm focus:ring-1 focus:ring-stone-200 outline-none text-stone-600 resize-none"></textarea>
                 </div>
 
                 <!-- Cijena -->
                 <div class="pt-4 border-t border-stone-50 flex justify-between items-end">
                     <div>
-                        <p class="text-[9px] uppercase tracking-widest text-stone-400 mb-1">Cijena po osobi</p>
+                        <p class="text-[9px] uppercase tracking-widest text-stone-400 mb-1" data-i18n="pricePerPerson">Cijena po osobi</p>
                         <p class="text-sm font-medium text-stone-500">95,00 €</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-[9px] uppercase tracking-widest text-stone-400 mb-1">Ukupno</p>
+                        <p class="text-[9px] uppercase tracking-widest text-stone-400 mb-1" data-i18n="totalPrice">Ukupno</p>
                         <p id="total-price" class="text-2xl font-light text-stone-800 tracking-tight">190,00 €</p>
                     </div>
                 </div>
 
-                <button type="submit" id="submit-btn" disabled class="w-full bg-stone-400 text-white py-5 rounded-2xl transition-all text-[10px] uppercase tracking-[0.4em] font-medium shadow-xl shadow-stone-200 cursor-not-allowed">
+                <button type="submit" id="submit-btn" disabled class="w-full bg-stone-400 text-white py-5 rounded-2xl transition-all text-[10px] uppercase tracking-[0.4em] font-medium shadow-xl shadow-stone-200 cursor-not-allowed" data-i18n="selectSlot">
                     Odaberite termin
                 </button>
             </form>
@@ -312,10 +312,10 @@
         <!-- Success screen -->
         <div id="success-screen" class="hidden text-center py-10 fade-in">
             <div class="w-12 h-[1px] bg-stone-800 mx-auto mb-10"></div>
-            <h2 class="text-xl font-light uppercase tracking-[0.3em] text-stone-800">Uspješno</h2>
+            <h2 class="text-xl font-light uppercase tracking-[0.3em] text-stone-800" data-i18n="reservationSuccess">Uspješno</h2>
             <p id="summary-text" class="text-stone-500 text-xs mt-6 leading-relaxed px-6 font-light"></p>
             <div class="mt-12">
-                <button onclick="window.location.href='/'" class="text-[9px] uppercase tracking-[0.2em] text-stone-300 hover:text-stone-800 border-b border-transparent hover:border-stone-800 transition-all pb-1">
+                <button onclick="window.location.href='/'" class="text-[9px] uppercase tracking-[0.2em] text-stone-300 hover:text-stone-800 border-b border-transparent hover:border-stone-800 transition-all pb-1" data-i18n="backToHome">
                     Natrag na početnu
                 </button>
             </div>
@@ -949,5 +949,6 @@
             }
         });
     </script>
+    <script src="/js/i18n.js"></script>
 </body>
 </html>

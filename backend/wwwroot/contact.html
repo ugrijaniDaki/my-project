@@ -23,33 +23,33 @@
 
     <nav class="w-full flex justify-between items-center px-8 py-8">
         <a href="index.html" class="text-xl tracking-[0.4em] uppercase font-light">Aura</a>
-        <a href="index.html" class="text-[10px] uppercase tracking-[0.2em] text-stone-400 hover:text-stone-800 transition">Povratak</a>
+        <a href="index.html" class="text-[10px] uppercase tracking-[0.2em] text-stone-400 hover:text-stone-800 transition" data-i18n="back">Povratak</a>
     </nav>
 
     <main class="max-w-6xl mx-auto px-8 py-12 md:py-24">
         <div class="grid md:grid-cols-2 gap-20 items-start contact-card">
-            
+
             <div class="space-y-16">
                 <section>
-                    <h1 class="text-4xl font-light tracking-tight mb-6 italic">Stupimo u kontakt.</h1>
-                    <p class="text-stone-500 font-light leading-relaxed max-w-sm">
+                    <h1 class="text-4xl font-light tracking-tight mb-6 italic" data-i18n="contactTitle">Stupimo u kontakt.</h1>
+                    <p class="text-stone-500 font-light leading-relaxed max-w-sm" data-i18n="contactSubtitle">
                         Bilo da se radi o privatnom događaju, posebnim prehrambenim zahtjevima ili medijskim upitima, naš tim vam stoji na raspolaganju.
                     </p>
                 </section>
 
                 <div class="grid grid-cols-1 gap-10">
                     <div>
-                        <h2 class="text-[10px] uppercase tracking-[0.3em] text-stone-400 mb-4">Adresa</h2>
+                        <h2 class="text-[10px] uppercase tracking-[0.3em] text-stone-400 mb-4" data-i18n="addressLabel">Adresa</h2>
                         <p class="text-sm font-light">Trg Kralja Tomislava 1<br>10000 Zagreb, Hrvatska</p>
                     </div>
                     <div>
-                        <h2 class="text-[10px] uppercase tracking-[0.3em] text-stone-400 mb-4">Kontakt</h2>
+                        <h2 class="text-[10px] uppercase tracking-[0.3em] text-stone-400 mb-4" data-i18n="contactLabel">Kontakt</h2>
                         <p class="text-sm font-light">Telefon: +385 1 234 5678</p>
                         <p class="text-sm font-light">Email: info@aura-dining.hr</p>
                     </div>
                     <div>
-                        <h2 class="text-[10px] uppercase tracking-[0.3em] text-stone-400 mb-4">Radno vrijeme</h2>
-                        <p class="text-sm font-light text-stone-500 italic">Srijeda — Nedjelja</p>
+                        <h2 class="text-[10px] uppercase tracking-[0.3em] text-stone-400 mb-4" data-i18n="workingHoursLabel">Radno vrijeme</h2>
+                        <p class="text-sm font-light text-stone-500 italic" data-i18n="wednesdaySunday">Srijeda — Nedjelja</p>
                         <p class="text-sm font-light">18:00 — 00:00</p>
                     </div>
                 </div>
@@ -59,26 +59,26 @@
                 <form action="#" class="space-y-8">
                     <div class="grid grid-cols-2 gap-6">
                         <div class="space-y-2">
-                            <label class="text-[9px] uppercase tracking-widest text-stone-400">Ime</label>
+                            <label class="text-[9px] uppercase tracking-widest text-stone-400" data-i18n="firstName">Ime</label>
                             <input type="text" placeholder="Ivan" class="w-full border-b border-stone-100 py-2 focus:border-stone-800 outline-none transition text-sm font-light">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[9px] uppercase tracking-widest text-stone-400">Prezime</label>
+                            <label class="text-[9px] uppercase tracking-widest text-stone-400" data-i18n="lastName">Prezime</label>
                             <input type="text" placeholder="Horvat" class="w-full border-b border-stone-100 py-2 focus:border-stone-800 outline-none transition text-sm font-light">
                         </div>
                     </div>
-                    
+
                     <div class="space-y-2">
-                        <label class="text-[9px] uppercase tracking-widest text-stone-400">Email adresa</label>
+                        <label class="text-[9px] uppercase tracking-widest text-stone-400" data-i18n="email">Email adresa</label>
                         <input type="email" placeholder="ivan@example.com" class="w-full border-b border-stone-100 py-2 focus:border-stone-800 outline-none transition text-sm font-light">
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-[9px] uppercase tracking-widest text-stone-400">Poruka</label>
-                        <textarea rows="4" placeholder="Kako vam možemo pomoći?" class="w-full border-b border-stone-100 py-2 focus:border-stone-800 outline-none transition text-sm font-light resize-none"></textarea>
+                        <label class="text-[9px] uppercase tracking-widest text-stone-400" data-i18n="message">Poruka</label>
+                        <textarea rows="4" data-i18n="howCanWeHelp" class="w-full border-b border-stone-100 py-2 focus:border-stone-800 outline-none transition text-sm font-light resize-none"></textarea>
                     </div>
 
-                    <button type="submit" class="w-full bg-stone-900 text-white py-4 rounded-xl text-[10px] uppercase tracking-[0.3em] hover:bg-stone-800 transition shadow-lg shadow-stone-100">
+                    <button type="submit" class="w-full bg-stone-900 text-white py-4 rounded-xl text-[10px] uppercase tracking-[0.3em] hover:bg-stone-800 transition shadow-lg shadow-stone-100" data-i18n="sendMessage">
                         Pošalji poruku
                     </button>
                 </form>
@@ -110,8 +110,9 @@
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
             </a>
         </div>
-        <p class="text-[9px] text-stone-400 uppercase tracking-widest">&copy; 2026 Aura Fine Dining. Sva prava pridrzana.</p>
+        <p class="text-[9px] text-stone-400 uppercase tracking-widest" data-i18n="copyright">&copy; 2026 Aura Fine Dining. Sva prava pridrzana.</p>
     </footer>
 
+    <script src="/js/i18n.js"></script>
 </body>
 </html>
