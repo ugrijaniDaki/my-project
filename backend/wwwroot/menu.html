@@ -198,6 +198,9 @@
                     <input type="text" id="deliveryLastName" required data-i18n="lastName"
                         class="w-full px-5 py-4 bg-stone-100 border-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-stone-300 transition text-stone-700 placeholder-stone-400">
 
+                    <input type="email" id="deliveryEmail" required data-i18n="email"
+                        class="w-full px-5 py-4 bg-stone-100 border-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-stone-300 transition text-stone-700 placeholder-stone-400">
+
                     <input type="tel" id="deliveryPhone" required data-i18n="phone"
                         class="w-full px-5 py-4 bg-stone-100 border-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-stone-300 transition text-stone-700 placeholder-stone-400">
 
@@ -344,15 +347,28 @@
                 `;
 
                 grouped[category].forEach(item => {
+                    const hasDiscount = item.discountPercent > 0 && (!item.discountEndDate || new Date(item.discountEndDate) > new Date());
+                    const effectivePrice = hasDiscount ? (item.price * (1 - item.discountPercent / 100)) : item.price;
+
                     html += `
-                        <div class="menu-item grid md:grid-cols-[1fr,140px] gap-6 pb-8 border-b border-stone-100" data-id="${item.id}" data-name="${item.name}" data-price="${item.price}">
+                        <div class="menu-item grid md:grid-cols-[1fr,140px] gap-6 pb-8 border-b border-stone-100 ${hasDiscount ? 'bg-green-50/50 -mx-4 px-4 py-4 rounded-xl' : ''}" data-id="${item.id}" data-name="${item.name}" data-price="${effectivePrice}">
                             <div>
                                 <div class="flex justify-between items-start mb-2">
-                                    <h3 class="text-lg font-serif">${item.name}</h3>
-                                    <span class="text-lg text-gold font-medium">${item.price.toFixed(2)} €</span>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-lg font-serif">${item.name}</h3>
+                                        ${hasDiscount ? `<span class="px-2 py-1 text-xs bg-green-500 text-white rounded-full font-medium">-${item.discountPercent}%</span>` : ''}
+                                    </div>
+                                    <div class="text-right">
+                                        ${hasDiscount ? `
+                                            <span class="text-sm text-stone-400 line-through">${item.price.toFixed(2)} €</span>
+                                            <span class="text-lg text-green-600 font-medium block">${effectivePrice.toFixed(2)} €</span>
+                                        ` : `
+                                            <span class="text-lg text-gold font-medium">${item.price.toFixed(2)} €</span>
+                                        `}
+                                    </div>
                                 </div>
                                 <p class="text-stone-400 text-sm leading-relaxed mb-4">${item.description || ''}</p>
-                                <button onclick="addToCart(this)" class="add-btn group flex items-center gap-2 px-4 py-2 border border-stone-200 text-stone-600 text-sm rounded-full hover:border-gold hover:text-gold transition">
+                                <button onclick="addToCart(this)" class="add-btn group flex items-center gap-2 px-4 py-2 border ${hasDiscount ? 'border-green-400 text-green-600 hover:bg-green-500 hover:text-white' : 'border-stone-200 text-stone-600 hover:border-gold hover:text-gold'} text-sm rounded-full transition">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                     </svg>
@@ -360,8 +376,9 @@
                                 </button>
                             </div>
                             ${item.imageUrl ? `
-                            <div class="h-28 md:h-auto rounded-xl overflow-hidden">
+                            <div class="h-28 md:h-auto rounded-xl overflow-hidden relative">
                                 <img src="${item.imageUrl}" class="menu-image w-full h-full object-cover transition-transform duration-500" alt="${item.name}">
+                                ${hasDiscount ? '<div class="absolute top-2 right-2 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">-' + item.discountPercent + '%</div>' : ''}
                             </div>
                             ` : ''}
                         </div>
@@ -593,6 +610,7 @@
 
             const orderData = {
                 customerName: document.getElementById('deliveryFirstName').value + ' ' + document.getElementById('deliveryLastName').value,
+                email: document.getElementById('deliveryEmail').value,
                 deliveryAddress: document.getElementById('deliveryAddress').value,
                 phone: document.getElementById('deliveryPhone').value,
                 notes: document.getElementById('deliveryNotes').value,
