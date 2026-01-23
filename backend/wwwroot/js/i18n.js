@@ -287,8 +287,8 @@ const i18n = {
       }
     }
 
-    this.updatePage();
     this.createLanguageSelector();
+    this.updatePage();
   },
 
   setLanguage(lang) {
