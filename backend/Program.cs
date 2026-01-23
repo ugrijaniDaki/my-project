@@ -484,6 +484,18 @@ app.MapPost("/api/auth/login", async (LoginRequest request, AuraDbContext db) =>
 
     await db.SaveChangesAsync();
 
+    // Send login success email
+    try
+    {
+        Console.WriteLine($"📨 About to send login success email to {user.Email}");
+        await EmailService.SendLoginSuccessEmailAsync(user.Email, user.Name);
+        Console.WriteLine($"✅ Login success email sent to {user.Email}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error sending login success email: {ex.Message}");
+    }
+
     return Results.Ok(new {
         token,
         user = new { user.Id, user.Name, user.Email, user.Phone }
@@ -1828,6 +1840,64 @@ public static class EmailService
         <div class='footer'>
             <p>Aura Fine Dining | King Tomislav Square 1, Zagreb</p>
             <p>Phone: +385 1 234 5678 | Email: info@aura-dining.hr</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+        await SendEmailAsync(toEmail, subject, body);
+    }
+
+    public static async Task SendLoginSuccessEmailAsync(string toEmail, string userName)
+    {
+        var apiKey = GetBrevoApiKey();
+
+        Console.WriteLine($"📧 SendLoginSuccessEmailAsync called for {toEmail}");
+        Console.WriteLine($"📧 BrevoApiKey configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
+
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            Console.WriteLine($"❌ Email not configured (BREVO_API_KEY missing) - would send login success email to {toEmail}");
+            return;
+        }
+
+        var subject = "Uspješna prijava - Aura Fine Dining";
+        var body = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <style>
+        body {{ font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #fafaf9; margin: 0; padding: 40px 20px; }}
+        .container {{ max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }}
+        .header {{ background: #1c1917; padding: 40px; text-align: center; }}
+        .header h1 {{ color: white; font-size: 28px; letter-spacing: 8px; margin: 0; font-weight: 300; }}
+        .content {{ padding: 40px; }}
+        .content h2 {{ color: #1c1917; font-size: 24px; margin-bottom: 20px; font-weight: 400; }}
+        .content p {{ color: #57534e; line-height: 1.8; margin-bottom: 16px; }}
+        .info-box {{ background: #f5f5f4; padding: 20px; border-radius: 12px; margin: 20px 0; }}
+        .info-box p {{ margin: 8px 0; color: #44403c; }}
+        .footer {{ background: #f5f5f4; padding: 30px; text-align: center; }}
+        .footer p {{ color: #a8a29e; font-size: 12px; margin: 0; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>AURA</h1>
+        </div>
+        <div class='content'>
+            <h2>Uspješna prijava</h2>
+            <p>Pozdrav {userName},</p>
+            <p>Upravo ste se uspješno prijavili na svoj račun u Aura Fine Dining.</p>
+            <div class='info-box'>
+                <p><strong>Vrijeme prijave:</strong> {DateTime.UtcNow:dd.MM.yyyy} u {DateTime.UtcNow:HH:mm} UTC</p>
+            </div>
+            <p>Ako niste vi izvršili ovu prijavu, molimo vas da odmah promijenite svoju lozinku ili nas kontaktirajte.</p>
+        </div>
+        <div class='footer'>
+            <p>Aura Fine Dining | Trg kralja Tomislava 1, Zagreb</p>
+            <p>Utorak - Subota, 18:00 - 00:00</p>
         </div>
     </div>
 </body>
