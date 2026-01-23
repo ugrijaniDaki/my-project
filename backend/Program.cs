@@ -392,6 +392,8 @@ string FormatDisplayName(string fullName)
 // Register new user
 app.MapPost("/api/auth/register", async (RegisterRequest request, AuraDbContext db) =>
 {
+    Console.WriteLine($"🆕 REGISTER ENDPOINT HIT: {request.Email}");
+
     // Check if email already exists
     if (await db.Users.AnyAsync(u => u.Email == request.Email))
     {
@@ -430,8 +432,10 @@ app.MapPost("/api/auth/register", async (RegisterRequest request, AuraDbContext 
     });
 
     await db.SaveChangesAsync();
+    Console.WriteLine($"✅ User saved to database: {user.Email}");
 
     // Send welcome email (with proper error logging)
+    Console.WriteLine($"📨 About to call EmailService for {user.Email}");
     try
     {
         Console.WriteLine($"🔔 Attempting to send welcome email to {user.Email}...");
