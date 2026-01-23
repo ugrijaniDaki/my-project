@@ -1593,16 +1593,31 @@ app.MapDelete("/api/orders/{id}", async (int id, HttpContext context, AuraDbCont
     return Results.Ok();
 });
 
-// SPA fallback for Angular app - must be after all other endpoints
+// SPA fallback for Angular app and desktop index - must be after all other endpoints
 app.MapFallback(async context =>
 {
     var path = context.Request.Path.Value?.ToLower() ?? "";
     if (path.StartsWith("/mobile-angular"))
     {
+        // Serve Angular SPA for mobile
         context.Response.ContentType = "text/html";
         await context.Response.SendFileAsync(
             Path.Combine(app.Environment.WebRootPath, "mobile-angular", "index.html")
         );
+    }
+    else if (!path.Contains("."))
+    {
+        // Serve desktop index.html for non-file paths
+        var indexPath = Path.Combine(app.Environment.WebRootPath, "index.html");
+        if (File.Exists(indexPath))
+        {
+            context.Response.ContentType = "text/html";
+            await context.Response.SendFileAsync(indexPath);
+        }
+        else
+        {
+            context.Response.StatusCode = 404;
+        }
     }
     else
     {
