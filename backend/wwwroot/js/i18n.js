@@ -318,9 +318,11 @@ const i18n = {
     // Update HTML lang attribute
     document.documentElement.lang = this.currentLang;
 
-    // Update language selector
+    // Update language selector visual state
     document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.lang === this.currentLang);
+      const isActive = btn.dataset.lang === this.currentLang;
+      btn.classList.toggle('bg-stone-900', isActive);
+      btn.classList.toggle('scale-110', isActive);
     });
   },
 
