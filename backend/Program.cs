@@ -61,8 +61,8 @@ builder.Services.AddDbContext<AuraDbContext>(options =>
 var app = builder.Build();
 
 // Log email configuration at startup
-var resendKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? "";
-Console.WriteLine($"🚀 Email service config: RESEND_API_KEY = {(string.IsNullOrEmpty(resendKey) ? "NOT SET" : $"SET (length: {resendKey.Length})")}");
+var brevoKey = Environment.GetEnvironmentVariable("BREVO_API_KEY") ?? "";
+Console.WriteLine($"🚀 Email service config: BREVO_API_KEY = {(string.IsNullOrEmpty(brevoKey) ? "NOT SET" : $"SET (length: {brevoKey.Length})")}");
 
 app.UseCors();
 
@@ -1674,26 +1674,20 @@ public static class EmailService
     private static readonly HttpClient _httpClient = new HttpClient();
 
     // Read config dynamically each time (in case env vars change)
-    private static string GetResendApiKey() => Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? "";
-    private static string GetFromEmail() => Environment.GetEnvironmentVariable("FROM_EMAIL") ?? "onboarding@resend.dev";
-    private static string GetSmtpHost() => Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp.gmail.com";
-    private static int GetSmtpPort() => int.TryParse(Environment.GetEnvironmentVariable("SMTP_PORT"), out var p) ? p : 587;
-    private static string GetSmtpUser() => Environment.GetEnvironmentVariable("SMTP_USER") ?? "";
-    private static string GetSmtpPass() => Environment.GetEnvironmentVariable("SMTP_PASS") ?? "";
+    private static string GetBrevoApiKey() => Environment.GetEnvironmentVariable("BREVO_API_KEY") ?? "";
+    private static string GetFromEmail() => Environment.GetEnvironmentVariable("FROM_EMAIL") ?? "noreply@aura-dining.hr";
     private const string FromName = "Aura Fine Dining";
 
     public static async Task SendWelcomeEmailAsync(string toEmail, string userName)
     {
-        var apiKey = GetResendApiKey();
-        var smtpUser = GetSmtpUser();
+        var apiKey = GetBrevoApiKey();
 
         Console.WriteLine($"📧 SendWelcomeEmailAsync called for {toEmail}");
-        Console.WriteLine($"📧 ResendApiKey configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
-        Console.WriteLine($"📧 SmtpUser configured: {!string.IsNullOrEmpty(smtpUser)}");
+        Console.WriteLine($"📧 BrevoApiKey configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
 
-        if (string.IsNullOrEmpty(apiKey) && string.IsNullOrEmpty(smtpUser))
+        if (string.IsNullOrEmpty(apiKey))
         {
-            Console.WriteLine($"❌ Email not configured - would send welcome email to {toEmail}");
+            Console.WriteLine($"❌ Email not configured (BREVO_API_KEY missing) - would send welcome email to {toEmail}");
             return;
         }
 
@@ -1746,14 +1740,13 @@ public static class EmailService
 
     public static async Task SendOrderConfirmationAsync(string toEmail, string customerName, Order order, List<OrderItem> items)
     {
-        var apiKey = GetResendApiKey();
-        var smtpUser = GetSmtpUser();
+        var apiKey = GetBrevoApiKey();
 
         Console.WriteLine($"📧 SendOrderConfirmationAsync called for {toEmail}");
 
-        if (string.IsNullOrEmpty(apiKey) && string.IsNullOrEmpty(smtpUser))
+        if (string.IsNullOrEmpty(apiKey))
         {
-            Console.WriteLine($"❌ Email not configured - would send order confirmation to {toEmail}");
+            Console.WriteLine($"❌ Email not configured (BREVO_API_KEY missing) - would send order confirmation to {toEmail}");
             return;
         }
 
@@ -1841,47 +1834,30 @@ public static class EmailService
 
     private static async Task SendEmailAsync(string toEmail, string subject, string htmlBody)
     {
-        var apiKey = GetResendApiKey();
-        var smtpUser = GetSmtpUser();
+        var apiKey = GetBrevoApiKey();
+        var fromEmail = GetFromEmail();
 
-        // Try Resend API first (recommended)
-        if (!string.IsNullOrEmpty(apiKey))
+        Console.WriteLine($"📧 SendEmailAsync starting for {toEmail}");
+        Console.WriteLine($"📧 Using FROM: {FromName} <{fromEmail}>");
+        Console.WriteLine($"📧 Brevo API Key configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
+
+        if (string.IsNullOrEmpty(apiKey))
         {
-            await SendViaResendAsync(toEmail, subject, htmlBody);
+            Console.WriteLine($"⚠️ BREVO_API_KEY not configured! Email to {toEmail} not sent.");
             return;
         }
 
-        // Fallback to SMTP
-        if (!string.IsNullOrEmpty(smtpUser))
-        {
-            await SendViaSmtpAsync(toEmail, subject, htmlBody);
-        }
-        else
-        {
-            Console.WriteLine($"⚠️ No email provider configured! Email to {toEmail} not sent.");
-        }
-    }
-
-    private static async Task SendViaResendAsync(string toEmail, string subject, string htmlBody)
-    {
-        var apiKey = GetResendApiKey();
-        var fromEmail = GetFromEmail();
-
-        Console.WriteLine($"📧 SendViaResendAsync starting for {toEmail}");
-        Console.WriteLine($"📧 Using FROM: {FromName} <{fromEmail}>");
-        Console.WriteLine($"📧 API Key (first 10 chars): {(apiKey.Length > 10 ? apiKey.Substring(0, 10) + "..." : apiKey)}");
-
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
-            request.Headers.Add("Authorization", $"Bearer {apiKey}");
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.brevo.com/v3/smtp/email");
+            request.Headers.Add("api-key", apiKey);
 
             var payload = new
             {
-                from = $"{FromName} <{fromEmail}>",
-                to = new[] { toEmail },
+                sender = new { name = FromName, email = fromEmail },
+                to = new[] { new { email = toEmail } },
                 subject = subject,
-                html = htmlBody
+                htmlContent = htmlBody
             };
 
             request.Content = new StringContent(
@@ -1895,50 +1871,16 @@ public static class EmailService
 
             if (response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"✅ Email sent via Resend to {toEmail}: {subject}");
+                Console.WriteLine($"✅ Email sent via Brevo to {toEmail}: {subject}");
             }
             else
             {
-                Console.WriteLine($"❌ Resend API error ({response.StatusCode}): {responseBody}");
+                Console.WriteLine($"❌ Brevo API error ({response.StatusCode}): {responseBody}");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Failed to send email via Resend to {toEmail}: {ex.Message}");
-        }
-    }
-
-    private static async Task SendViaSmtpAsync(string toEmail, string subject, string htmlBody)
-    {
-        var smtpHost = GetSmtpHost();
-        var smtpPort = GetSmtpPort();
-        var smtpUser = GetSmtpUser();
-        var smtpPass = GetSmtpPass();
-        var fromEmail = GetFromEmail();
-
-        try
-        {
-            using var client = new SmtpClient(smtpHost, smtpPort)
-            {
-                Credentials = new NetworkCredential(smtpUser, smtpPass),
-                EnableSsl = true
-            };
-
-            var message = new MailMessage
-            {
-                From = new MailAddress(fromEmail, FromName),
-                Subject = subject,
-                Body = htmlBody,
-                IsBodyHtml = true
-            };
-            message.To.Add(toEmail);
-
-            await client.SendMailAsync(message);
-            Console.WriteLine($"✅ Email sent via SMTP to {toEmail}: {subject}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"❌ Failed to send email via SMTP to {toEmail}: {ex.Message}");
+            Console.WriteLine($"❌ Failed to send email via Brevo to {toEmail}: {ex.Message}");
         }
     }
 }
