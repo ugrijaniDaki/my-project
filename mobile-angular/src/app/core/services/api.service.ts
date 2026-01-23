@@ -15,7 +15,7 @@ import {
 })
 export class ApiService {
   private readonly baseUrl = 'https://my-project-r5ce.onrender.com';
-  private readonly TIMEOUT = 60000; // 60 seconds for Render cold start
+  private readonly TIMEOUT = 30000; // 30 seconds timeout
 
   constructor(private http: HttpClient) {}
 
