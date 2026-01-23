@@ -91,9 +91,6 @@ app.Use(async (context, next) =>
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-// SPA fallback for Angular app
-app.MapFallbackToFile("/mobile-angular/{**path}", "mobile-angular/index.html");
-
 // Ensure database is created and seed data
 using (var scope = app.Services.CreateScope())
 {
@@ -1594,6 +1591,23 @@ app.MapDelete("/api/orders/{id}", async (int id, HttpContext context, AuraDbCont
     db.Orders.Remove(order);
     await db.SaveChangesAsync();
     return Results.Ok();
+});
+
+// SPA fallback for Angular app - must be after all other endpoints
+app.MapFallback(async context =>
+{
+    var path = context.Request.Path.Value?.ToLower() ?? "";
+    if (path.StartsWith("/mobile-angular"))
+    {
+        context.Response.ContentType = "text/html";
+        await context.Response.SendFileAsync(
+            Path.Combine(app.Environment.WebRootPath, "mobile-angular", "index.html")
+        );
+    }
+    else
+    {
+        context.Response.StatusCode = 404;
+    }
 });
 
 app.Run();
