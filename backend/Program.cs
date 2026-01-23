@@ -61,8 +61,10 @@ builder.Services.AddDbContext<AuraDbContext>(options =>
 var app = builder.Build();
 
 // Log email configuration at startup
-var sendGridKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") ?? "";
-Console.WriteLine($"🚀 Email service config: SENDGRID_API_KEY = {(string.IsNullOrEmpty(sendGridKey) ? "NOT SET" : $"SET (length: {sendGridKey.Length})")}");
+var resendKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? "";
+var fromEmail = Environment.GetEnvironmentVariable("FROM_EMAIL") ?? "onboarding@resend.dev";
+Console.WriteLine($"🚀 Email service config: RESEND_API_KEY = {(string.IsNullOrEmpty(resendKey) ? "NOT SET" : $"SET (length: {resendKey.Length})")}");
+Console.WriteLine($"🚀 Email FROM address: {fromEmail}");
 
 app.UseCors();
 
@@ -1690,20 +1692,21 @@ public static class EmailService
     private static readonly HttpClient _httpClient = new HttpClient();
 
     // Read config dynamically each time (in case env vars change)
-    private static string GetSendGridApiKey() => Environment.GetEnvironmentVariable("SENDGRID_API_KEY") ?? "";
-    private static string GetFromEmail() => Environment.GetEnvironmentVariable("FROM_EMAIL") ?? "noreply@aura-dining.hr";
+    private static string GetResendApiKey() => Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? "";
+    // Resend requires verified domain or use their test address: onboarding@resend.dev
+    private static string GetFromEmail() => Environment.GetEnvironmentVariable("FROM_EMAIL") ?? "onboarding@resend.dev";
     private const string FromName = "Aura Fine Dining";
 
     public static async Task SendWelcomeEmailAsync(string toEmail, string userName)
     {
-        var apiKey = GetSendGridApiKey();
+        var apiKey = GetResendApiKey();
 
         Console.WriteLine($"📧 SendWelcomeEmailAsync called for {toEmail}");
-        Console.WriteLine($"📧 SendGrid configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
+        Console.WriteLine($"📧 Resend configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            Console.WriteLine($"❌ Email not configured (SENDGRID_API_KEY missing) - would send welcome email to {toEmail}");
+            Console.WriteLine($"❌ Email not configured (RESEND_API_KEY missing) - would send welcome email to {toEmail}");
             return;
         }
 
@@ -1756,13 +1759,13 @@ public static class EmailService
 
     public static async Task SendOrderConfirmationAsync(string toEmail, string customerName, Order order, List<OrderItem> items)
     {
-        var apiKey = GetSendGridApiKey();
+        var apiKey = GetResendApiKey();
 
         Console.WriteLine($"📧 SendOrderConfirmationAsync called for {toEmail}");
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            Console.WriteLine($"❌ Email not configured (SENDGRID_API_KEY missing) - would send order confirmation to {toEmail}");
+            Console.WriteLine($"❌ Email not configured (RESEND_API_KEY missing) - would send order confirmation to {toEmail}");
             return;
         }
 
@@ -1850,14 +1853,14 @@ public static class EmailService
 
     public static async Task SendLoginSuccessEmailAsync(string toEmail, string userName)
     {
-        var apiKey = GetSendGridApiKey();
+        var apiKey = GetResendApiKey();
 
         Console.WriteLine($"📧 SendLoginSuccessEmailAsync called for {toEmail}");
-        Console.WriteLine($"📧 SendGrid configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
+        Console.WriteLine($"📧 Resend configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            Console.WriteLine($"❌ Email not configured (SENDGRID_API_KEY missing) - would send login success email to {toEmail}");
+            Console.WriteLine($"❌ Email not configured (RESEND_API_KEY missing) - would send login success email to {toEmail}");
             return;
         }
 
@@ -1908,34 +1911,37 @@ public static class EmailService
 
     private static async Task SendEmailAsync(string toEmail, string subject, string htmlBody)
     {
-        var apiKey = GetSendGridApiKey();
+        var apiKey = GetResendApiKey();
         var fromEmail = GetFromEmail();
 
         Console.WriteLine($"📧 SendEmailAsync starting for {toEmail}");
         Console.WriteLine($"📧 Using FROM: {FromName} <{fromEmail}>");
-        Console.WriteLine($"📧 SendGrid API Key configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
+        Console.WriteLine($"📧 Resend API Key configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            Console.WriteLine($"⚠️ SENDGRID_API_KEY not configured! Email to {toEmail} not sent.");
+            Console.WriteLine($"⚠️ RESEND_API_KEY not configured! Email to {toEmail} not sent.");
             return;
         }
 
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.sendgrid.com/v3/mail/send");
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
             request.Headers.Add("Authorization", $"Bearer {apiKey}");
 
             var payload = new
             {
-                personalizations = new[] { new { to = new[] { new { email = toEmail } } } },
-                from = new { email = fromEmail, name = FromName },
+                from = $"{FromName} <{fromEmail}>",
+                to = new[] { toEmail },
                 subject = subject,
-                content = new[] { new { type = "text/html", value = htmlBody } }
+                html = htmlBody
             };
 
+            var jsonPayload = System.Text.Json.JsonSerializer.Serialize(payload);
+            Console.WriteLine($"📧 Resend payload: from={fromEmail}, to={toEmail}, subject={subject}");
+
             request.Content = new StringContent(
-                System.Text.Json.JsonSerializer.Serialize(payload),
+                jsonPayload,
                 Encoding.UTF8,
                 "application/json"
             );
@@ -1943,18 +1949,22 @@ public static class EmailService
             var response = await _httpClient.SendAsync(request);
             var responseBody = await response.Content.ReadAsStringAsync();
 
+            Console.WriteLine($"📧 Resend response status: {response.StatusCode}");
+            Console.WriteLine($"📧 Resend response body: {responseBody}");
+
             if (response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"✅ Email sent via SendGrid to {toEmail}: {subject}");
+                Console.WriteLine($"✅ Email sent via Resend to {toEmail}: {subject}");
             }
             else
             {
-                Console.WriteLine($"❌ SendGrid API error ({response.StatusCode}): {responseBody}");
+                Console.WriteLine($"❌ Resend API error ({response.StatusCode}): {responseBody}");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Failed to send email via SendGrid to {toEmail}: {ex.Message}");
+            Console.WriteLine($"❌ Failed to send email via Resend to {toEmail}: {ex.Message}");
+            Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
         }
     }
 }
