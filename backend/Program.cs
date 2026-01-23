@@ -431,8 +431,18 @@ app.MapPost("/api/auth/register", async (RegisterRequest request, AuraDbContext 
 
     await db.SaveChangesAsync();
 
-    // Send welcome email
-    _ = EmailService.SendWelcomeEmailAsync(user.Email, user.Name);
+    // Send welcome email (with proper error logging)
+    try
+    {
+        Console.WriteLine($"🔔 Attempting to send welcome email to {user.Email}...");
+        await EmailService.SendWelcomeEmailAsync(user.Email, user.Name);
+        Console.WriteLine($"🔔 Welcome email task completed for {user.Email}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error sending welcome email: {ex.Message}");
+        Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+    }
 
     return Results.Ok(new {
         token,
@@ -1003,9 +1013,11 @@ app.MapGet("/api/schedule/available/{date}", async (DateTime date, AuraDbContext
         return Results.Ok(new { IsClosed = true, Reason = "Zatvoreno", Slots = Array.Empty<object>(), AllSlots = Array.Empty<object>() });
     }
 
-    // Get existing reservations for that date
+    // Get existing reservations for that date (using date range for reliable comparison)
+    var startOfDay = utcDate.Date;
+    var endOfDay = startOfDay.AddDays(1);
     var existingReservations = await db.Reservations
-        .Where(r => r.Date.Date == utcDate.Date && r.Status != ReservationStatus.Cancelled)
+        .Where(r => r.Date >= startOfDay && r.Date < endOfDay && r.Status != ReservationStatus.Cancelled)
         .GroupBy(r => r.Time)
         .Select(g => new { Time = g.Key, Count = g.Count() })
         .ToListAsync();
@@ -1659,26 +1671,27 @@ static string GenerateToken()
 // ============= EMAIL SERVICE =============
 public static class EmailService
 {
-    // Resend API (recommended - free 100 emails/day)
-    private static readonly string ResendApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? "";
-
-    // SMTP fallback
-    private static readonly string SmtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp.gmail.com";
-    private static readonly int SmtpPort = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587");
-    private static readonly string SmtpUser = Environment.GetEnvironmentVariable("SMTP_USER") ?? "";
-    private static readonly string SmtpPass = Environment.GetEnvironmentVariable("SMTP_PASS") ?? "";
-
-    private static readonly string FromEmail = Environment.GetEnvironmentVariable("FROM_EMAIL") ?? "onboarding@resend.dev";
-    private static readonly string FromName = "Aura Fine Dining";
-
     private static readonly HttpClient _httpClient = new HttpClient();
+
+    // Read config dynamically each time (in case env vars change)
+    private static string GetResendApiKey() => Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? "";
+    private static string GetFromEmail() => Environment.GetEnvironmentVariable("FROM_EMAIL") ?? "onboarding@resend.dev";
+    private static string GetSmtpHost() => Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp.gmail.com";
+    private static int GetSmtpPort() => int.TryParse(Environment.GetEnvironmentVariable("SMTP_PORT"), out var p) ? p : 587;
+    private static string GetSmtpUser() => Environment.GetEnvironmentVariable("SMTP_USER") ?? "";
+    private static string GetSmtpPass() => Environment.GetEnvironmentVariable("SMTP_PASS") ?? "";
+    private const string FromName = "Aura Fine Dining";
 
     public static async Task SendWelcomeEmailAsync(string toEmail, string userName)
     {
-        Console.WriteLine($"📧 SendWelcomeEmailAsync called for {toEmail}");
-        Console.WriteLine($"📧 ResendApiKey configured: {!string.IsNullOrEmpty(ResendApiKey)} (length: {ResendApiKey.Length})");
+        var apiKey = GetResendApiKey();
+        var smtpUser = GetSmtpUser();
 
-        if (string.IsNullOrEmpty(ResendApiKey) && string.IsNullOrEmpty(SmtpUser))
+        Console.WriteLine($"📧 SendWelcomeEmailAsync called for {toEmail}");
+        Console.WriteLine($"📧 ResendApiKey configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
+        Console.WriteLine($"📧 SmtpUser configured: {!string.IsNullOrEmpty(smtpUser)}");
+
+        if (string.IsNullOrEmpty(apiKey) && string.IsNullOrEmpty(smtpUser))
         {
             Console.WriteLine($"❌ Email not configured - would send welcome email to {toEmail}");
             return;
@@ -1733,9 +1746,14 @@ public static class EmailService
 
     public static async Task SendOrderConfirmationAsync(string toEmail, string customerName, Order order, List<OrderItem> items)
     {
-        if (string.IsNullOrEmpty(ResendApiKey) && string.IsNullOrEmpty(SmtpUser))
+        var apiKey = GetResendApiKey();
+        var smtpUser = GetSmtpUser();
+
+        Console.WriteLine($"📧 SendOrderConfirmationAsync called for {toEmail}");
+
+        if (string.IsNullOrEmpty(apiKey) && string.IsNullOrEmpty(smtpUser))
         {
-            Console.WriteLine($"Email not configured - would send order confirmation to {toEmail}");
+            Console.WriteLine($"❌ Email not configured - would send order confirmation to {toEmail}");
             return;
         }
 
@@ -1823,33 +1841,44 @@ public static class EmailService
 
     private static async Task SendEmailAsync(string toEmail, string subject, string htmlBody)
     {
+        var apiKey = GetResendApiKey();
+        var smtpUser = GetSmtpUser();
+
         // Try Resend API first (recommended)
-        if (!string.IsNullOrEmpty(ResendApiKey))
+        if (!string.IsNullOrEmpty(apiKey))
         {
             await SendViaResendAsync(toEmail, subject, htmlBody);
             return;
         }
 
         // Fallback to SMTP
-        if (!string.IsNullOrEmpty(SmtpUser))
+        if (!string.IsNullOrEmpty(smtpUser))
         {
             await SendViaSmtpAsync(toEmail, subject, htmlBody);
+        }
+        else
+        {
+            Console.WriteLine($"⚠️ No email provider configured! Email to {toEmail} not sent.");
         }
     }
 
     private static async Task SendViaResendAsync(string toEmail, string subject, string htmlBody)
     {
+        var apiKey = GetResendApiKey();
+        var fromEmail = GetFromEmail();
+
         Console.WriteLine($"📧 SendViaResendAsync starting for {toEmail}");
-        Console.WriteLine($"📧 Using FROM: {FromName} <{FromEmail}>");
+        Console.WriteLine($"📧 Using FROM: {FromName} <{fromEmail}>");
+        Console.WriteLine($"📧 API Key (first 10 chars): {(apiKey.Length > 10 ? apiKey.Substring(0, 10) + "..." : apiKey)}");
 
         try
         {
             var request = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
-            request.Headers.Add("Authorization", $"Bearer {ResendApiKey}");
+            request.Headers.Add("Authorization", $"Bearer {apiKey}");
 
             var payload = new
             {
-                from = $"{FromName} <{FromEmail}>",
+                from = $"{FromName} <{fromEmail}>",
                 to = new[] { toEmail },
                 subject = subject,
                 html = htmlBody
@@ -1881,17 +1910,23 @@ public static class EmailService
 
     private static async Task SendViaSmtpAsync(string toEmail, string subject, string htmlBody)
     {
+        var smtpHost = GetSmtpHost();
+        var smtpPort = GetSmtpPort();
+        var smtpUser = GetSmtpUser();
+        var smtpPass = GetSmtpPass();
+        var fromEmail = GetFromEmail();
+
         try
         {
-            using var client = new SmtpClient(SmtpHost, SmtpPort)
+            using var client = new SmtpClient(smtpHost, smtpPort)
             {
-                Credentials = new NetworkCredential(SmtpUser, SmtpPass),
+                Credentials = new NetworkCredential(smtpUser, smtpPass),
                 EnableSsl = true
             };
 
             var message = new MailMessage
             {
-                From = new MailAddress(FromEmail, FromName),
+                From = new MailAddress(fromEmail, FromName),
                 Subject = subject,
                 Body = htmlBody,
                 IsBodyHtml = true
