@@ -6,6 +6,7 @@ import 'screens/menu_screen.dart';
 import 'screens/reservation_screen.dart';
 import 'services/api_service.dart';
 import 'services/cart_provider.dart';
+import 'services/i18n_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,9 +14,16 @@ void main() async {
   // Učitaj spremljenu sesiju prije pokretanja aplikacije
   await ApiService.loadSavedSession();
 
+  // Inicijaliziraj i18n servis
+  final i18n = I18nService();
+  await i18n.init();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => CartProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider.value(value: i18n),
+      ],
       child: const AuraApp(),
     ),
   );
@@ -60,6 +68,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final i18n = context.watch<I18nService>();
 
     return Scaffold(
       body: IndexedStack(
@@ -83,9 +92,9 @@ class _MainNavigationState extends State<MainNavigation> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.home_outlined, Icons.home, 'Početna'),
-                _buildNavItem(1, Icons.restaurant_menu_outlined, Icons.restaurant_menu, 'Menu'),
-                _buildNavItem(2, Icons.calendar_today_outlined, Icons.calendar_today, 'Rezervacija'),
+                _buildNavItem(0, Icons.home_outlined, Icons.home, i18n.t('nav.home')),
+                _buildNavItem(1, Icons.restaurant_menu_outlined, Icons.restaurant_menu, i18n.t('nav.menu')),
+                _buildNavItem(2, Icons.calendar_today_outlined, Icons.calendar_today, i18n.t('nav.reservation')),
               ],
             ),
           ),

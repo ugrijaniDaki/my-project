@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/api_service.dart';
+import '../services/i18n_service.dart';
 import '../widgets/availability_calendar.dart';
 
 // ============================================
@@ -23,6 +25,7 @@ class _ReservationScreenState extends State<ReservationScreen>
 
   // Tab controller za animacije
   late TabController _tabController;
+  late I18nService _i18n;
 
   // Varijable stanja
   DateTime _selectedDate = DateTime.now(); // Auto-select danas
@@ -38,12 +41,6 @@ class _ReservationScreenState extends State<ReservationScreen>
   String? _closedReason;
   String? _openTime;
   String? _closeTime;
-
-  // Hrvatski nazivi mjeseci
-  final List<String> _monthNames = [
-    '', 'Siječanj', 'Veljača', 'Ožujak', 'Travanj', 'Svibanj', 'Lipanj',
-    'Srpanj', 'Kolovoz', 'Rujan', 'Listopad', 'Studeni', 'Prosinac'
-  ];
 
   @override
   void initState() {
@@ -142,12 +139,14 @@ class _ReservationScreenState extends State<ReservationScreen>
 
   @override
   Widget build(BuildContext context) {
+    _i18n = context.watch<I18nService>();
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          'REZERVACIJA',
-          style: TextStyle(
+        title: Text(
+          _i18n.t('reservation.title'),
+          style: const TextStyle(
             letterSpacing: 8,
             fontWeight: FontWeight.w300,
             fontSize: 18,
@@ -197,7 +196,7 @@ class _ReservationScreenState extends State<ReservationScreen>
                   IconButton(
                     icon: const Icon(Icons.logout, size: 20),
                     onPressed: _logout,
-                    tooltip: 'Odjava',
+                    tooltip: _i18n.t('reservation.logout'),
                   ),
                 ],
               ),
@@ -252,7 +251,7 @@ class _ReservationScreenState extends State<ReservationScreen>
                               : [],
                         ),
                         child: Text(
-                          'Registracija',
+                          _i18n.t('reservation.register'),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: isSelected ? Colors.white : Colors.grey[600],
@@ -289,7 +288,7 @@ class _ReservationScreenState extends State<ReservationScreen>
                               : [],
                         ),
                         child: Text(
-                          'Prijava',
+                          _i18n.t('reservation.login'),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: isSelected ? Colors.white : Colors.grey[600],
@@ -353,16 +352,16 @@ class _ReservationScreenState extends State<ReservationScreen>
               child: Icon(Icons.person_add_outlined, color: Colors.grey[700], size: 28),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Kreirajte račun',
-              style: TextStyle(
+            Text(
+              _i18n.t('reservation.createAccount'),
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Unesite svoje podatke za rezervaciju',
+              _i18n.t('reservation.enterData'),
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[500],
@@ -371,45 +370,45 @@ class _ReservationScreenState extends State<ReservationScreen>
             const SizedBox(height: 28),
             _buildTextField(
               controller: _nameController,
-              label: 'Ime i prezime',
+              label: _i18n.t('menu.name'),
               icon: Icons.person_outline,
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _emailController,
-              label: 'Email adresa',
+              label: _i18n.t('reservation.email'),
               icon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _phoneController,
-              label: 'Broj telefona',
+              label: _i18n.t('menu.phone'),
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _passwordController,
-              label: 'Lozinka',
+              label: _i18n.t('reservation.password'),
               icon: Icons.lock_outline,
               obscureText: true,
             ),
             const SizedBox(height: 28),
-            _buildSubmitButton('REGISTRIRAJ SE', _register),
+            _buildSubmitButton(_i18n.t('reservation.registerButton'), _register),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Već imate račun? ',
+                  _i18n.t('reservation.haveAccount'),
                   style: TextStyle(color: Colors.grey[600], fontSize: 13),
                 ),
                 GestureDetector(
                   onTap: () => _tabController.animateTo(1),
-                  child: const Text(
-                    'Prijavite se',
-                    style: TextStyle(
+                  child: Text(
+                    _i18n.t('reservation.loginLink'),
+                    style: const TextStyle(
                       color: Color(0xFF1C1917),
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
@@ -455,16 +454,16 @@ class _ReservationScreenState extends State<ReservationScreen>
               child: Icon(Icons.login_outlined, color: Colors.grey[700], size: 28),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Dobro došli natrag',
-              style: TextStyle(
+            Text(
+              _i18n.t('reservation.welcomeBack'),
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Prijavite se za nastavak rezervacije',
+              _i18n.t('reservation.loginToContinue'),
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[500],
@@ -473,32 +472,32 @@ class _ReservationScreenState extends State<ReservationScreen>
             const SizedBox(height: 28),
             _buildTextField(
               controller: _emailController,
-              label: 'Email adresa',
+              label: _i18n.t('reservation.email'),
               icon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _passwordController,
-              label: 'Lozinka',
+              label: _i18n.t('reservation.password'),
               icon: Icons.lock_outline,
               obscureText: true,
             ),
             const SizedBox(height: 28),
-            _buildSubmitButton('PRIJAVI SE', _login),
+            _buildSubmitButton(_i18n.t('reservation.loginButton'), _login),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Nemate račun? ',
+                  _i18n.t('reservation.noAccount'),
                   style: TextStyle(color: Colors.grey[600], fontSize: 13),
                 ),
                 GestureDetector(
                   onTap: () => _tabController.animateTo(0),
-                  child: const Text(
-                    'Registrirajte se',
-                    style: TextStyle(
+                  child: Text(
+                    _i18n.t('reservation.registerLink'),
+                    style: const TextStyle(
                       color: Color(0xFF1C1917),
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
@@ -556,7 +555,7 @@ class _ReservationScreenState extends State<ReservationScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Dobro došli, $_userName!',
+                        '${_i18n.t('reservation.welcome')} $_userName!',
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -565,7 +564,7 @@ class _ReservationScreenState extends State<ReservationScreen>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Spremni ste za rezervaciju',
+                        _i18n.t('reservation.readyToBook'),
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 13,
@@ -581,7 +580,7 @@ class _ReservationScreenState extends State<ReservationScreen>
           const SizedBox(height: 32),
 
           // Kalendar s dostupnoscu
-          _buildSectionTitle('ODABERITE DATUM'),
+          _buildSectionTitle(_i18n.t('reservation.selectDate')),
           const SizedBox(height: 12),
           AvailabilityCalendar(
             selectedDate: _selectedDate,
@@ -604,7 +603,7 @@ class _ReservationScreenState extends State<ReservationScreen>
                 const Icon(Icons.event, color: Colors.white, size: 18),
                 const SizedBox(width: 8),
                 Text(
-                  '${_getDayName(_selectedDate.weekday)}, ${_selectedDate.day}. ${_monthNames[_selectedDate.month]} ${_selectedDate.year}',
+                  '${_i18n.getDayName(_selectedDate.weekday)}, ${_selectedDate.day}. ${_i18n.getMonthName(_selectedDate.month)} ${_selectedDate.year}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -618,25 +617,25 @@ class _ReservationScreenState extends State<ReservationScreen>
           const SizedBox(height: 28),
 
           // Vremenski slot
-          _buildSectionTitle('ODABERITE TERMIN'),
+          _buildSectionTitle(_i18n.t('reservation.selectTime')),
           const SizedBox(height: 12),
           _buildTimeSlotPicker(),
 
           const SizedBox(height: 28),
 
           // Broj gostiju
-          _buildSectionTitle('BROJ GOSTIJU'),
+          _buildSectionTitle(_i18n.t('reservation.guests')),
           const SizedBox(height: 12),
           _buildGuestSelector(),
 
           const SizedBox(height: 28),
 
           // Napomena
-          _buildSectionTitle('POSEBNE NAPOMENE'),
+          _buildSectionTitle(_i18n.t('reservation.notes')),
           const SizedBox(height: 12),
           _buildTextField(
             controller: _noteController,
-            label: 'Alergije, posebni zahtjevi...',
+            label: _i18n.t('reservation.notesPlaceholder'),
             icon: Icons.note_outlined,
             maxLines: 3,
           ),
@@ -666,7 +665,7 @@ class _ReservationScreenState extends State<ReservationScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'CIJENA PO OSOBI',
+                          _i18n.t('reservation.pricePerPerson'),
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.5),
                             fontSize: 10,
@@ -693,7 +692,7 @@ class _ReservationScreenState extends State<ReservationScreen>
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          'UKUPNO',
+                          _i18n.t('menu.total'),
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.5),
                             fontSize: 10,
@@ -721,7 +720,7 @@ class _ReservationScreenState extends State<ReservationScreen>
           const SizedBox(height: 24),
 
           // Gumb za rezervaciju
-          _buildSubmitButton('POTVRDI REZERVACIJU', _submitReservation),
+          _buildSubmitButton(_i18n.t('reservation.confirmButton'), _submitReservation),
 
           const SizedBox(height: 32),
         ],
@@ -747,11 +746,6 @@ class _ReservationScreenState extends State<ReservationScreen>
 
   // _buildDatePicker maknuta - koristimo AvailabilityCalendar
 
-  String _getDayName(int weekday) {
-    const days = ['', 'Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', 'Petak', 'Subota', 'Nedjelja'];
-    return days[weekday];
-  }
-
   Widget _buildTimeSlotPicker() {
     // Loading state
     if (_isLoadingSlots) {
@@ -761,17 +755,17 @@ class _ReservationScreenState extends State<ReservationScreen>
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Center(
+        child: Center(
           child: Column(
             children: [
-              CircularProgressIndicator(
+              const CircularProgressIndicator(
                 color: Color(0xFF1C1917),
                 strokeWidth: 2,
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
-                'Ucitavam termine...',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
+                _i18n.t('reservation.loading'),
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
               ),
             ],
           ),
@@ -793,7 +787,7 @@ class _ReservationScreenState extends State<ReservationScreen>
             Icon(Icons.event_busy, color: Colors.red[400], size: 40),
             const SizedBox(height: 12),
             Text(
-              'Zatvoreno',
+              _i18n.t('reservation.closed'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -802,7 +796,7 @@ class _ReservationScreenState extends State<ReservationScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              _closedReason ?? 'Restoran ne radi ovaj dan',
+              _closedReason ?? _i18n.t('reservation.closedDefault'),
               style: TextStyle(color: Colors.red[400], fontSize: 13),
               textAlign: TextAlign.center,
             ),
@@ -824,7 +818,7 @@ class _ReservationScreenState extends State<ReservationScreen>
             Icon(Icons.event_busy, color: Colors.grey[400], size: 40),
             const SizedBox(height: 12),
             Text(
-              'Nema dostupnih termina',
+              _i18n.t('reservation.noSlots'),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -844,7 +838,7 @@ class _ReservationScreenState extends State<ReservationScreen>
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
-              'Radno vrijeme: $_openTime - $_closeTime',
+              '${_i18n.t('reservation.workingHours')} $_openTime - $_closeTime',
               style: TextStyle(fontSize: 12, color: Colors.grey[500]),
             ),
           ),
@@ -919,7 +913,7 @@ class _ReservationScreenState extends State<ReservationScreen>
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        isAvailable ? 'Slobodno' : 'Popunjeno',
+                        isAvailable ? _i18n.t('reservation.available') : _i18n.t('reservation.full'),
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w600,
@@ -968,7 +962,7 @@ class _ReservationScreenState extends State<ReservationScreen>
           const SizedBox(width: 16),
           Expanded(
             child: Text(
-              '$_guests ${_guests == 1 ? 'osoba' : _guests < 5 ? 'osobe' : 'osoba'}',
+              _i18n.getGuestText(_guests),
               style: const TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
@@ -1100,7 +1094,7 @@ class _ReservationScreenState extends State<ReservationScreen>
         _emailController.text.isEmpty ||
         _phoneController.text.isEmpty ||
         _passwordController.text.isEmpty) {
-      _showError('Molimo ispunite sva polja');
+      _showError(_i18n.t('reservation.fillAll'));
       return;
     }
 
@@ -1120,15 +1114,15 @@ class _ReservationScreenState extends State<ReservationScreen>
         _isLoggedIn = true;
         _userName = ApiService.userName ?? _nameController.text;
       });
-      _showSuccess('Uspješna registracija!');
+      _showSuccess(_i18n.t('reservation.registerSuccess'));
     } else {
-      _showError(response.error ?? 'Greška pri registraciji');
+      _showError(response.error ?? _i18n.t('reservation.registerError'));
     }
   }
 
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showError('Molimo unesite email i lozinku');
+      _showError(_i18n.t('reservation.enterEmailPassword'));
       return;
     }
 
@@ -1144,11 +1138,11 @@ class _ReservationScreenState extends State<ReservationScreen>
     if (response.success) {
       setState(() {
         _isLoggedIn = true;
-        _userName = ApiService.userName ?? 'Korisnik';
+        _userName = ApiService.userName ?? 'User';
       });
-      _showSuccess('Uspješna prijava!');
+      _showSuccess(_i18n.t('reservation.loginSuccess'));
     } else {
-      _showError(response.error ?? 'Pogrešan email ili lozinka');
+      _showError(response.error ?? _i18n.t('reservation.loginError'));
     }
   }
 
@@ -1162,7 +1156,7 @@ class _ReservationScreenState extends State<ReservationScreen>
 
   Future<void> _submitReservation() async {
     if (_selectedSlotTime == null) {
-      _showError('Molimo odaberite termin');
+      _showError(_i18n.t('reservation.selectSlot'));
       return;
     }
 
@@ -1174,8 +1168,8 @@ class _ReservationScreenState extends State<ReservationScreen>
     // Izračunaj cijenu i dodaj je u napomenu
     final totalPrice = (_guests * 95).toStringAsFixed(2);
     final noteWithPrice = _noteController.text.isNotEmpty
-        ? 'Cijena: $totalPrice EUR | ${_noteController.text}'
-        : 'Cijena: $totalPrice EUR';
+        ? '${_i18n.t('reservation.price')} $totalPrice EUR | ${_noteController.text}'
+        : '${_i18n.t('reservation.price')} $totalPrice EUR';
 
     final response = await ApiService.createReservation(
       date: dateStr,
@@ -1190,7 +1184,7 @@ class _ReservationScreenState extends State<ReservationScreen>
       _showSuccessDialog();
       _noteController.clear();
     } else {
-      _showError(response.error ?? 'Greška pri rezervaciji');
+      _showError(response.error ?? _i18n.t('reservation.bookingError'));
     }
   }
 
@@ -1233,9 +1227,9 @@ class _ReservationScreenState extends State<ReservationScreen>
 
               const SizedBox(height: 24),
 
-              const Text(
-                'USPJEŠNO',
-                style: TextStyle(
+              Text(
+                _i18n.t('reservation.successTitle'),
+                style: const TextStyle(
                   fontSize: 12,
                   letterSpacing: 4,
                   color: Colors.grey,
@@ -1245,9 +1239,9 @@ class _ReservationScreenState extends State<ReservationScreen>
 
               const SizedBox(height: 8),
 
-              const Text(
-                'Rezervacija potvrđena!',
-                style: TextStyle(
+              Text(
+                _i18n.t('reservation.confirmed'),
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1266,31 +1260,31 @@ class _ReservationScreenState extends State<ReservationScreen>
                   children: [
                     _buildDetailRow(
                       Icons.calendar_today,
-                      'Datum',
-                      '${_selectedDate.day}. ${_monthNames[_selectedDate.month]} ${_selectedDate.year}',
+                      _i18n.t('reservation.date'),
+                      '${_selectedDate.day}. ${_i18n.getMonthName(_selectedDate.month)} ${_selectedDate.year}',
                     ),
                     const SizedBox(height: 16),
                     _buildDetailRow(
                       Icons.login,
-                      'Dolazak',
+                      _i18n.t('reservation.arrival'),
                       arrivalTime,
                     ),
                     const SizedBox(height: 16),
                     _buildDetailRow(
                       Icons.logout,
-                      'Odlazak',
+                      _i18n.t('reservation.departure'),
                       departureTime,
                     ),
                     const SizedBox(height: 16),
                     _buildDetailRow(
                       Icons.people,
-                      'Gosti',
-                      '$_guests ${_guests == 1 ? 'osoba' : _guests < 5 ? 'osobe' : 'osoba'}',
+                      _i18n.t('reservation.guestsLabel'),
+                      _i18n.getGuestText(_guests),
                     ),
                     const SizedBox(height: 16),
                     _buildDetailRow(
                       Icons.euro,
-                      'Ukupno',
+                      _i18n.t('reservation.totalLabel'),
                       '${(_guests * 95).toStringAsFixed(2).replaceAll('.', ',')} EUR',
                     ),
                   ],
@@ -1300,7 +1294,7 @@ class _ReservationScreenState extends State<ReservationScreen>
               const SizedBox(height: 16),
 
               Text(
-                'Potvrdu ćete primiti na email.',
+                _i18n.t('reservation.emailConfirm'),
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey[500],
@@ -1324,9 +1318,9 @@ class _ReservationScreenState extends State<ReservationScreen>
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'NATRAG NA POČETNU',
-                    style: TextStyle(
+                  child: Text(
+                    _i18n.t('reservation.backHome'),
+                    style: const TextStyle(
                       letterSpacing: 2,
                       fontWeight: FontWeight.w600,
                     ),

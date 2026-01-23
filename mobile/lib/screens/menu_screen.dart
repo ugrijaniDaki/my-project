@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/cart_provider.dart';
 import '../services/api_service.dart';
+import '../services/i18n_service.dart';
 
 // ============================================
 // MENU SCREEN - Stranica s jelima i košaricom
@@ -50,12 +51,14 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final i18n = context.watch<I18nService>();
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          'MENU',
-          style: TextStyle(
+        title: Text(
+          i18n.t('menu.title'),
+          style: const TextStyle(
             letterSpacing: 8,
             fontWeight: FontWeight.w300,
           ),
@@ -70,7 +73,7 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                'Degustacijski Menu — Sezona 2026',
+                i18n.t('menu.subtitle'),
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey[500],
@@ -108,7 +111,7 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
                                   });
                                   _loadMenuItems();
                                 },
-                                child: const Text('Pokušaj ponovo'),
+                                child: Text(i18n.t('menu.tryAgain')),
                               ),
                             ],
                           ),
@@ -142,6 +145,7 @@ class _MenuItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
+    final i18n = context.watch<I18nService>();
     final quantity = cart.getQuantity(item.id);
 
     return Container(
@@ -273,7 +277,7 @@ class _MenuItemCard extends StatelessWidget {
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Text(
-                                            '${item.name} dodano',
+                                            '${item.name} ${i18n.t('menu.added')}',
                                             style: const TextStyle(
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -305,17 +309,17 @@ class _MenuItemCard extends StatelessWidget {
                                   color: const Color(0xFF1C1917),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   children: [
-                                    Icon(
+                                    const Icon(
                                       Icons.add,
                                       color: Colors.white,
                                       size: 16,
                                     ),
-                                    SizedBox(width: 4),
+                                    const SizedBox(width: 4),
                                     Text(
-                                      'Dodaj',
-                                      style: TextStyle(
+                                      i18n.t('menu.add'),
+                                      style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
@@ -394,6 +398,7 @@ class _CartBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
+    final i18n = context.watch<I18nService>();
 
     return GestureDetector(
       onTap: () => _showCartBottomSheet(context),
@@ -420,7 +425,7 @@ class _CartBottomBar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'KOŠARICA',
+                  i18n.t('menu.cart'),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 10,
@@ -430,8 +435,8 @@ class _CartBottomBar extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   cart.isEmpty
-                      ? 'Košarica je prazna'
-                      : '${cart.itemCount} ${cart.itemCount == 1 ? 'stavka' : cart.itemCount < 5 ? 'stavke' : 'stavki'}',
+                      ? i18n.t('menu.cartEmpty')
+                      : i18n.getItemText(cart.itemCount),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
@@ -500,6 +505,7 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
   final _noteController = TextEditingController();
 
   bool _isLoading = false;
+  late I18nService _i18n;
   double _dragOffset = 0;
   late AnimationController _animController;
   late Animation<double> _animation;
@@ -557,6 +563,7 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
+    _i18n = context.watch<I18nService>();
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
@@ -613,9 +620,9 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  'KOŠARICA',
-                                  style: TextStyle(
+                                Text(
+                                  _i18n.t('menu.cart'),
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 4,
@@ -628,7 +635,7 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
                                       cart.clear();
                                     },
                                     child: Text(
-                                      'Isprazni',
+                                      _i18n.t('menu.clear'),
                                       style: TextStyle(
                                         fontSize: 13,
                                         color: Colors.red[300],
@@ -680,9 +687,9 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Košarica je prazna',
-            style: TextStyle(
+          Text(
+            _i18n.t('menu.emptyCartTitle'),
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
               color: Colors.white,
@@ -690,7 +697,7 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
           ),
           const SizedBox(height: 8),
           Text(
-            'Dodajte jela iz menija',
+            _i18n.t('menu.emptyCartSubtitle'),
             style: TextStyle(
               fontSize: 14,
               color: Colors.white.withValues(alpha: 0.6),
@@ -707,9 +714,9 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'PREGLEDAJ MENU',
-              style: TextStyle(
+            child: Text(
+              _i18n.t('menu.browseMenu'),
+              style: const TextStyle(
                 letterSpacing: 2,
                 fontWeight: FontWeight.w600,
               ),
@@ -730,7 +737,7 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
         children: [
           // Stavke u košarici
           Text(
-            'VAŠA NARUDŽBA',
+            _i18n.t('menu.yourOrder'),
             style: TextStyle(
               fontSize: 11,
               letterSpacing: 2,
@@ -746,7 +753,7 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
 
           // Podaci za dostavu
           Text(
-            'PODACI ZA DOSTAVU',
+            _i18n.t('menu.deliveryData'),
             style: TextStyle(
               fontSize: 11,
               letterSpacing: 2,
@@ -757,26 +764,26 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
           const SizedBox(height: 12),
           _buildTextField(
             controller: _nameController,
-            label: 'Ime i prezime',
+            label: _i18n.t('menu.name'),
             icon: Icons.person_outline,
           ),
           const SizedBox(height: 12),
           _buildTextField(
             controller: _phoneController,
-            label: 'Broj telefona',
+            label: _i18n.t('menu.phone'),
             icon: Icons.phone_outlined,
             keyboardType: TextInputType.phone,
           ),
           const SizedBox(height: 12),
           _buildTextField(
             controller: _addressController,
-            label: 'Adresa dostave',
+            label: _i18n.t('menu.address'),
             icon: Icons.location_on_outlined,
           ),
           const SizedBox(height: 12),
           _buildTextField(
             controller: _noteController,
-            label: 'Napomena (opcionalno)',
+            label: _i18n.t('menu.note'),
             icon: Icons.note_outlined,
           ),
 
@@ -795,7 +802,7 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Ukupno stavki',
+                      _i18n.t('menu.totalItems'),
                       style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 14),
                     ),
                     Text(
@@ -809,11 +816,11 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Dostava',
+                      _i18n.t('menu.delivery'),
                       style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 14),
                     ),
                     Text(
-                      'Besplatno',
+                      _i18n.t('menu.free'),
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.green[400],
@@ -825,9 +832,9 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'UKUPNO',
-                      style: TextStyle(
+                    Text(
+                      _i18n.t('menu.total'),
+                      style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
                         color: Colors.white,
@@ -850,7 +857,7 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
           const SizedBox(height: 24),
 
           // Gumb za naručivanje
-          _buildSubmitButton('NARUČI', _submitOrder),
+          _buildSubmitButton(_i18n.t('menu.order'), _submitOrder),
 
           // Dovoljno prostora za safe area na dnu
           const SizedBox(height: 60),
@@ -1030,15 +1037,15 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
 
   Future<void> _submitOrder() async {
     if (_nameController.text.isEmpty) {
-      _showError('Molimo unesite ime i prezime');
+      _showError(_i18n.t('menu.enterName'));
       return;
     }
     if (_phoneController.text.isEmpty) {
-      _showError('Molimo unesite broj telefona');
+      _showError(_i18n.t('menu.enterPhone'));
       return;
     }
     if (_addressController.text.isEmpty) {
-      _showError('Molimo unesite adresu dostave');
+      _showError(_i18n.t('menu.enterAddress'));
       return;
     }
 
@@ -1071,7 +1078,7 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
         cart.clear();
       }
     } else {
-      _showError(response.error ?? 'Greška pri slanju narudžbe');
+      _showError(response.error ?? _i18n.t('menu.orderError'));
     }
   }
 
@@ -1101,9 +1108,9 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
                 child: const Icon(Icons.check, color: Colors.white, size: 40),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'USPJEŠNO',
-                style: TextStyle(
+              Text(
+                _i18n.t('menu.success'),
+                style: const TextStyle(
                   fontSize: 12,
                   letterSpacing: 4,
                   color: Colors.grey,
@@ -1111,16 +1118,16 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Narudžba zaprimljena!',
-                style: TextStyle(
+              Text(
+                _i18n.t('menu.orderReceived'),
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 16),
               Text(
-                'Hvala $name!\n\nVaša narudžba će biti dostavljena na:\n$address',
+                '${_i18n.t('menu.thankYou')} $name!\n\n${_i18n.t('menu.deliveredTo')}\n$address',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -1140,9 +1147,9 @@ class _CartBottomSheetState extends State<_CartBottomSheet> with SingleTickerPro
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'U REDU',
-                    style: TextStyle(
+                  child: Text(
+                    _i18n.t('menu.ok'),
+                    style: const TextStyle(
                       letterSpacing: 2,
                       fontWeight: FontWeight.w600,
                     ),

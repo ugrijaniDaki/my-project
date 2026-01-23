@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/i18n_service.dart';
 
 // ============================================
 // HOME SCREEN - Početna stranica
@@ -8,37 +10,49 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final i18n = context.watch<I18nService>();
+
     return Scaffold(
       // SafeArea osigurava da sadržaj ne ide ispod notcha/status bara
       body: SafeArea(
-        child: SingleChildScrollView(
-          // SingleChildScrollView omogućuje scrollanje
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // ========== HERO SEKCIJA ==========
-              _buildHeroSection(context),
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              // SingleChildScrollView omogućuje scrollanje
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ========== HERO SEKCIJA ==========
+                  _buildHeroSection(context, i18n),
 
-              const SizedBox(height: 40),
+                  const SizedBox(height: 40),
 
-              // ========== FILOZOFIJA SEKCIJA ==========
-              _buildPhilosophySection(),
+                  // ========== FILOZOFIJA SEKCIJA ==========
+                  _buildPhilosophySection(i18n),
 
-              const SizedBox(height: 40),
+                  const SizedBox(height: 40),
 
-              // ========== INFO KARTICE ==========
-              _buildInfoCards(),
+                  // ========== INFO KARTICE ==========
+                  _buildInfoCards(i18n),
 
-              const SizedBox(height: 40),
-            ],
-          ),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+            // Language selector
+            Positioned(
+              top: 16,
+              right: 16,
+              child: _LanguageSelector(i18n: i18n),
+            ),
+          ],
         ),
       ),
     );
   }
 
   // Hero sekcija sa slikom i tekstom
-  Widget _buildHeroSection(BuildContext context) {
+  Widget _buildHeroSection(BuildContext context, I18nService i18n) {
     return Container(
       height: 400,
       decoration: const BoxDecoration(
@@ -62,14 +76,14 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
-        child: const Padding(
-          padding: EdgeInsets.all(24.0),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Naslov
-              Text(
+              const Text(
                 'AURA',
                 style: TextStyle(
                   color: Colors.white,
@@ -78,21 +92,21 @@ class HomeScreen extends StatelessWidget {
                   letterSpacing: 16,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               // Podnaslov
               Text(
-                'Okusi tišine.',
-                style: TextStyle(
+                i18n.t('home.heroTitle'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 28,
                   fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.w300,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
-                'Zagreb — Sezona 2026',
-                style: TextStyle(
+                i18n.t('home.season'),
+                style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 12,
                   letterSpacing: 4,
@@ -106,7 +120,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   // Sekcija s filozofijom restorana
-  Widget _buildPhilosophySection() {
+  Widget _buildPhilosophySection(I18nService i18n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
@@ -114,7 +128,7 @@ class HomeScreen extends StatelessWidget {
         children: [
           // Label
           Text(
-            'FILOZOFIJA',
+            i18n.t('home.philosophy'),
             style: TextStyle(
               fontSize: 10,
               letterSpacing: 4,
@@ -123,9 +137,9 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           // Naslov
-          const Text(
-            'Minimalizam na tanjuru,\nmaksimalizam u okusu.',
-            style: TextStyle(
+          Text(
+            i18n.t('home.philosophyTitle'),
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w300,
               height: 1.4,
@@ -134,9 +148,7 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 16),
           // Opis
           Text(
-            'Aura nije samo restoran, već putovanje kroz osjetila. '
-            'Svaka namirnica u sezoni 2026. pažljivo je odabrana s lokalnih OPG-ova, '
-            'tretirana s poštovanjem i pretvorena u umjetnost.',
+            i18n.t('home.philosophyText'),
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],
@@ -149,7 +161,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   // Info kartice (radno vrijeme, lokacija)
-  Widget _buildInfoCards() {
+  Widget _buildInfoCards(I18nService i18n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Row(
@@ -158,8 +170,8 @@ class HomeScreen extends StatelessWidget {
           Expanded(
             child: _InfoCard(
               icon: Icons.access_time,
-              title: 'Radno vrijeme',
-              subtitle: 'Uto - Sub\n18:00 - 00:00',
+              title: i18n.t('home.hours'),
+              subtitle: i18n.t('home.hoursValue'),
             ),
           ),
           const SizedBox(width: 16),
@@ -167,11 +179,63 @@ class HomeScreen extends StatelessWidget {
           Expanded(
             child: _InfoCard(
               icon: Icons.location_on_outlined,
-              title: 'Lokacija',
-              subtitle: 'Trg Kralja\nTomislava 1',
+              title: i18n.t('home.location'),
+              subtitle: i18n.t('home.locationValue'),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ============================================
+// LANGUAGE SELECTOR WIDGET
+// ============================================
+class _LanguageSelector extends StatelessWidget {
+  final I18nService i18n;
+
+  const _LanguageSelector({required this.i18n});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: I18nService.supportedLanguages.map((lang) {
+          final isActive = i18n.currentLanguage == lang['code'];
+          return GestureDetector(
+            onTap: () => i18n.setLanguage(lang['code'] as Language),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 32,
+              height: 32,
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              decoration: BoxDecoration(
+                color: isActive ? const Color(0xFF1C1917) : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Center(
+                child: Text(
+                  lang['flag'] as String,
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

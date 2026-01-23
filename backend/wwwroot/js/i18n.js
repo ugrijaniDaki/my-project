@@ -330,7 +330,7 @@ const i18n = {
     if (!selector) {
       selector = document.createElement('div');
       selector.id = 'language-selector';
-      selector.className = 'fixed top-4 right-4 z-[100] flex gap-2 bg-white/90 backdrop-blur-md p-1.5 rounded-full shadow-lg';
+      selector.className = 'fixed bottom-6 right-6 z-[100] flex gap-2 bg-white/90 backdrop-blur-md p-1.5 rounded-full shadow-lg';
       document.body.appendChild(selector);
     }
 
