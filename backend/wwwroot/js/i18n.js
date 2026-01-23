@@ -337,9 +337,9 @@ const i18n = {
     }
 
     selector.innerHTML = `
-      <button class="lang-btn w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all ${this.currentLang === 'hr' ? 'bg-stone-900 scale-110' : ''}" data-lang="hr" onclick="i18n.setLanguage('hr')">🇭🇷</button>
-      <button class="lang-btn w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all ${this.currentLang === 'en' ? 'bg-stone-900 scale-110' : ''}" data-lang="en" onclick="i18n.setLanguage('en')">🇬🇧</button>
-      <button class="lang-btn w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all ${this.currentLang === 'de' ? 'bg-stone-900 scale-110' : ''}" data-lang="de" onclick="i18n.setLanguage('de')">🇩🇪</button>
+      <button class="lang-btn w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all" data-lang="hr" onclick="i18n.setLanguage('hr')">🇭🇷</button>
+      <button class="lang-btn w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all" data-lang="en" onclick="i18n.setLanguage('en')">🇬🇧</button>
+      <button class="lang-btn w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all" data-lang="de" onclick="i18n.setLanguage('de')">🇩🇪</button>
     `;
   }
 };
