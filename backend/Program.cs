@@ -61,8 +61,8 @@ builder.Services.AddDbContext<AuraDbContext>(options =>
 var app = builder.Build();
 
 // Log email configuration at startup
-var brevoKey = Environment.GetEnvironmentVariable("BREVO_API_KEY") ?? "";
-Console.WriteLine($"🚀 Email service config: BREVO_API_KEY = {(string.IsNullOrEmpty(brevoKey) ? "NOT SET" : $"SET (length: {brevoKey.Length})")}");
+var sendGridKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") ?? "";
+Console.WriteLine($"🚀 Email service config: SENDGRID_API_KEY = {(string.IsNullOrEmpty(sendGridKey) ? "NOT SET" : $"SET (length: {sendGridKey.Length})")}");
 
 app.UseCors();
 
@@ -1690,20 +1690,20 @@ public static class EmailService
     private static readonly HttpClient _httpClient = new HttpClient();
 
     // Read config dynamically each time (in case env vars change)
-    private static string GetBrevoApiKey() => Environment.GetEnvironmentVariable("BREVO_API_KEY") ?? "";
+    private static string GetSendGridApiKey() => Environment.GetEnvironmentVariable("SENDGRID_API_KEY") ?? "";
     private static string GetFromEmail() => Environment.GetEnvironmentVariable("FROM_EMAIL") ?? "noreply@aura-dining.hr";
     private const string FromName = "Aura Fine Dining";
 
     public static async Task SendWelcomeEmailAsync(string toEmail, string userName)
     {
-        var apiKey = GetBrevoApiKey();
+        var apiKey = GetSendGridApiKey();
 
         Console.WriteLine($"📧 SendWelcomeEmailAsync called for {toEmail}");
-        Console.WriteLine($"📧 BrevoApiKey configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
+        Console.WriteLine($"📧 SendGrid configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            Console.WriteLine($"❌ Email not configured (BREVO_API_KEY missing) - would send welcome email to {toEmail}");
+            Console.WriteLine($"❌ Email not configured (SENDGRID_API_KEY missing) - would send welcome email to {toEmail}");
             return;
         }
 
@@ -1756,13 +1756,13 @@ public static class EmailService
 
     public static async Task SendOrderConfirmationAsync(string toEmail, string customerName, Order order, List<OrderItem> items)
     {
-        var apiKey = GetBrevoApiKey();
+        var apiKey = GetSendGridApiKey();
 
         Console.WriteLine($"📧 SendOrderConfirmationAsync called for {toEmail}");
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            Console.WriteLine($"❌ Email not configured (BREVO_API_KEY missing) - would send order confirmation to {toEmail}");
+            Console.WriteLine($"❌ Email not configured (SENDGRID_API_KEY missing) - would send order confirmation to {toEmail}");
             return;
         }
 
@@ -1850,14 +1850,14 @@ public static class EmailService
 
     public static async Task SendLoginSuccessEmailAsync(string toEmail, string userName)
     {
-        var apiKey = GetBrevoApiKey();
+        var apiKey = GetSendGridApiKey();
 
         Console.WriteLine($"📧 SendLoginSuccessEmailAsync called for {toEmail}");
-        Console.WriteLine($"📧 BrevoApiKey configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
+        Console.WriteLine($"📧 SendGrid configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            Console.WriteLine($"❌ Email not configured (BREVO_API_KEY missing) - would send login success email to {toEmail}");
+            Console.WriteLine($"❌ Email not configured (SENDGRID_API_KEY missing) - would send login success email to {toEmail}");
             return;
         }
 
@@ -1908,30 +1908,30 @@ public static class EmailService
 
     private static async Task SendEmailAsync(string toEmail, string subject, string htmlBody)
     {
-        var apiKey = GetBrevoApiKey();
+        var apiKey = GetSendGridApiKey();
         var fromEmail = GetFromEmail();
 
         Console.WriteLine($"📧 SendEmailAsync starting for {toEmail}");
         Console.WriteLine($"📧 Using FROM: {FromName} <{fromEmail}>");
-        Console.WriteLine($"📧 Brevo API Key configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
+        Console.WriteLine($"📧 SendGrid API Key configured: {!string.IsNullOrEmpty(apiKey)} (length: {apiKey.Length})");
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            Console.WriteLine($"⚠️ BREVO_API_KEY not configured! Email to {toEmail} not sent.");
+            Console.WriteLine($"⚠️ SENDGRID_API_KEY not configured! Email to {toEmail} not sent.");
             return;
         }
 
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.brevo.com/v3/smtp/email");
-            request.Headers.Add("api-key", apiKey);
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.sendgrid.com/v3/mail/send");
+            request.Headers.Add("Authorization", $"Bearer {apiKey}");
 
             var payload = new
             {
-                sender = new { name = FromName, email = fromEmail },
-                to = new[] { new { email = toEmail } },
+                personalizations = new[] { new { to = new[] { new { email = toEmail } } } },
+                from = new { email = fromEmail, name = FromName },
                 subject = subject,
-                htmlContent = htmlBody
+                content = new[] { new { type = "text/html", value = htmlBody } }
             };
 
             request.Content = new StringContent(
@@ -1945,16 +1945,16 @@ public static class EmailService
 
             if (response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"✅ Email sent via Brevo to {toEmail}: {subject}");
+                Console.WriteLine($"✅ Email sent via SendGrid to {toEmail}: {subject}");
             }
             else
             {
-                Console.WriteLine($"❌ Brevo API error ({response.StatusCode}): {responseBody}");
+                Console.WriteLine($"❌ SendGrid API error ({response.StatusCode}): {responseBody}");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Failed to send email via Brevo to {toEmail}: {ex.Message}");
+            Console.WriteLine($"❌ Failed to send email via SendGrid to {toEmail}: {ex.Message}");
         }
     }
 }
