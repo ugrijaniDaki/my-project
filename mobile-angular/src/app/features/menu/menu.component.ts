@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -420,6 +420,8 @@ export class MenuComponent implements OnInit {
   cartService = inject(CartService);
   private bottomSheet = inject(MatBottomSheet);
   private snackBar = inject(MatSnackBar);
+  private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
 
   menuItems: MenuItem[] = [];
   categories = CATEGORY_ORDER;
@@ -433,16 +435,23 @@ export class MenuComponent implements OnInit {
   loadMenu() {
     this.loading = true;
     this.error = false;
+    this.cdr.detectChanges();
 
     this.apiService.getMenuItems().subscribe({
       next: (items) => {
-        this.menuItems = items;
-        this.loading = false;
-        this.error = false;
+        this.ngZone.run(() => {
+          this.menuItems = items;
+          this.loading = false;
+          this.error = false;
+          this.cdr.detectChanges();
+        });
       },
       error: () => {
-        this.loading = false;
-        this.error = true;
+        this.ngZone.run(() => {
+          this.loading = false;
+          this.error = true;
+          this.cdr.detectChanges();
+        });
       }
     });
   }

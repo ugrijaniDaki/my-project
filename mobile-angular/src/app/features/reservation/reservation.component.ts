@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -747,6 +747,8 @@ export class ReservationComponent implements OnInit {
   authService = inject(AuthService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
 
   // Calendar
   currentMonth = new Date().getMonth();
@@ -793,6 +795,11 @@ export class ReservationComponent implements OnInit {
     this.today.setHours(0, 0, 0, 0);
     this.buildCalendar();
 
+    // Show auth dialog immediately if not logged in
+    if (!this.authService.currentUser) {
+      setTimeout(() => this.showAuthDialog(), 100);
+    }
+
     // Auto-select today and load slots first
     const todayStr = this.formatDate(this.today);
     this.selectedDate = todayStr;
@@ -800,6 +807,19 @@ export class ReservationComponent implements OnInit {
 
     // Load month availability after a delay to not overwhelm the API on cold start
     setTimeout(() => this.loadMonthAvailability(), 2000);
+  }
+
+  showAuthDialog() {
+    this.dialog.open(AuthDialogComponent, {
+      maxWidth: '100vw',
+      maxHeight: '100vh',
+      width: '100%',
+      height: '100%',
+      panelClass: 'fullscreen-dialog',
+      disableClose: false
+    }).afterClosed().subscribe(result => {
+      this.cdr.detectChanges();
+    });
   }
 
   prevMonth() {
@@ -871,21 +891,24 @@ export class ReservationComponent implements OnInit {
 
     this.apiService.getCalendarStatus(startDate, endDate).subscribe({
       next: (data) => {
-        if (!data || data.length === 0) return;
+        this.ngZone.run(() => {
+          if (!data || data.length === 0) return;
 
-        data.forEach((dayData: any) => {
-          const day = this.calendarDays.find(d => d.dateStr === dayData.date);
-          if (!day || day.status === 'disabled' || day.status === 'past') return;
+          data.forEach((dayData: any) => {
+            const day = this.calendarDays.find(d => d.dateStr === dayData.date);
+            if (!day || day.status === 'disabled' || day.status === 'past') return;
 
-          if (dayData.isClosed) {
-            day.status = 'closed';
-          } else if (dayData.availableSlots === 0) {
-            day.status = 'full';
-          } else if (dayData.availableSlots < dayData.totalSlots / 2) {
-            day.status = 'limited';
-          } else {
-            day.status = 'available';
-          }
+            if (dayData.isClosed) {
+              day.status = 'closed';
+            } else if (dayData.availableSlots === 0) {
+              day.status = 'full';
+            } else if (dayData.availableSlots < dayData.totalSlots / 2) {
+              day.status = 'limited';
+            } else {
+              day.status = 'available';
+            }
+          });
+          this.cdr.detectChanges();
         });
       },
       error: () => {
@@ -911,21 +934,28 @@ export class ReservationComponent implements OnInit {
     this.slotsError = false;
     this.isClosed = false;
     this.slots = [];
+    this.cdr.detectChanges();
 
     this.apiService.getAvailableSlots(dateStr).subscribe({
       next: (data) => {
-        this.loadingSlots = false;
-        this.slotsError = false;
-        if (data.isClosed) {
-          this.isClosed = true;
-          this.closedReason = data.reason || '';
-        } else {
-          this.slots = data.allSlots || data.slots || [];
-        }
+        this.ngZone.run(() => {
+          this.loadingSlots = false;
+          this.slotsError = false;
+          if (data.isClosed) {
+            this.isClosed = true;
+            this.closedReason = data.reason || '';
+          } else {
+            this.slots = data.allSlots || data.slots || [];
+          }
+          this.cdr.detectChanges();
+        });
       },
       error: () => {
-        this.loadingSlots = false;
-        this.slotsError = true;
+        this.ngZone.run(() => {
+          this.loadingSlots = false;
+          this.slotsError = true;
+          this.cdr.detectChanges();
+        });
       }
     });
   }
