@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -89,7 +89,11 @@ import { AuthService } from '../../../core/services/auth.service';
     .auth-dialog {
       background: white;
       min-height: 100vh;
+      min-height: 100dvh;
       padding: 20px;
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .dialog-header {
@@ -218,6 +222,8 @@ import { AuthService } from '../../../core/services/auth.service';
 export class AuthDialogComponent {
   private authService = inject(AuthService);
   private dialogRef = inject(MatDialogRef<AuthDialogComponent>);
+  private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
 
   mode: 'login' | 'register' = 'register';
   error = '';
@@ -240,20 +246,28 @@ export class AuthDialogComponent {
   login() {
     if (!this.loginEmail || !this.loginPassword) {
       this.error = 'Molimo popunite sva polja';
+      this.cdr.detectChanges();
       return;
     }
 
     this.loading = true;
     this.error = '';
+    this.cdr.detectChanges();
 
     this.authService.login(this.loginEmail, this.loginPassword).subscribe({
       next: () => {
-        this.loading = false;
-        this.dialogRef.close(true);
+        this.ngZone.run(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+          this.dialogRef.close(true);
+        });
       },
       error: (err) => {
-        this.loading = false;
-        this.error = err.error?.error || 'Greška pri prijavi';
+        this.ngZone.run(() => {
+          this.loading = false;
+          this.error = err.error?.error || 'Greška pri prijavi';
+          this.cdr.detectChanges();
+        });
       }
     });
   }
@@ -261,16 +275,19 @@ export class AuthDialogComponent {
   register() {
     if (!this.regName || !this.regEmail || !this.regPhone || !this.regPassword) {
       this.error = 'Molimo popunite sva polja';
+      this.cdr.detectChanges();
       return;
     }
 
     if (this.regPassword.length < 6) {
       this.error = 'Lozinka mora imati najmanje 6 znakova';
+      this.cdr.detectChanges();
       return;
     }
 
     this.loading = true;
     this.error = '';
+    this.cdr.detectChanges();
 
     this.authService.register({
       name: this.regName,
@@ -279,12 +296,18 @@ export class AuthDialogComponent {
       password: this.regPassword
     }).subscribe({
       next: () => {
-        this.loading = false;
-        this.dialogRef.close(true);
+        this.ngZone.run(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+          this.dialogRef.close(true);
+        });
       },
       error: (err) => {
-        this.loading = false;
-        this.error = err.error?.error || 'Greška pri registraciji';
+        this.ngZone.run(() => {
+          this.loading = false;
+          this.error = err.error?.error || 'Greška pri registraciji';
+          this.cdr.detectChanges();
+        });
       }
     });
   }

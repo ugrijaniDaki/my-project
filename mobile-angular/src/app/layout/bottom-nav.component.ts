@@ -37,6 +37,8 @@ import { MatIconModule } from '@angular/material/icon';
       min-height: 100vh;
       min-height: 100dvh;
       background: #fafaf9;
+      position: relative;
+      overflow-x: hidden;
     }
 
     .content {
