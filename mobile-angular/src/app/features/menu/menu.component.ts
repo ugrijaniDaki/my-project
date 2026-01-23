@@ -45,6 +45,19 @@ import { CartSheetComponent } from './components/cart-sheet.component';
         <div class="loading">
           <mat-icon class="spin">sync</mat-icon>
           <p>Učitavanje menija...</p>
+          <p class="loading-hint">Molimo pričekajte, server se pokreće...</p>
+        </div>
+      }
+
+      <!-- Error -->
+      @if (error && !loading) {
+        <div class="error-state">
+          <mat-icon>cloud_off</mat-icon>
+          <p>Greška pri učitavanju</p>
+          <button class="retry-btn" (click)="loadMenu()">
+            <mat-icon>refresh</mat-icon>
+            Pokušaj ponovo
+          </button>
         </div>
       }
 
@@ -192,6 +205,51 @@ import { CartSheetComponent } from './components/cart-sheet.component';
       p {
         margin-top: 12px;
         font-size: 14px;
+      }
+
+      .loading-hint {
+        font-size: 12px;
+        color: #d6d3d1;
+        margin-top: 8px;
+      }
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 48px;
+      color: #a8a29e;
+
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: #d6d3d1;
+      }
+
+      p {
+        margin-top: 16px;
+        font-size: 14px;
+      }
+
+      .retry-btn {
+        margin-top: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: #1C1917;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 13px;
+        cursor: pointer;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          color: white;
+        }
       }
     }
 
@@ -366,20 +424,25 @@ export class MenuComponent implements OnInit {
   menuItems: MenuItem[] = [];
   categories = CATEGORY_ORDER;
   loading = true;
+  error = false;
 
   ngOnInit() {
     this.loadMenu();
   }
 
   loadMenu() {
+    this.loading = true;
+    this.error = false;
+
     this.apiService.getMenuItems().subscribe({
       next: (items) => {
         this.menuItems = items;
         this.loading = false;
+        this.error = false;
       },
       error: () => {
         this.loading = false;
-        this.snackBar.open('Greška pri učitavanju menija', 'OK', { duration: 3000 });
+        this.error = true;
       }
     });
   }

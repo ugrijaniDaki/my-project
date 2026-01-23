@@ -112,6 +112,18 @@ interface CalendarDay {
             <div class="loading-slots">
               <mat-icon class="spin">sync</mat-icon>
               <p>Učitavam termine...</p>
+              <p class="loading-hint">Molimo pričekajte...</p>
+            </div>
+          }
+
+          @if (slotsError && !loadingSlots) {
+            <div class="error-slots">
+              <mat-icon>cloud_off</mat-icon>
+              <p>Greška pri učitavanju</p>
+              <button class="retry-btn" (click)="loadSlots(selectedDate!)">
+                <mat-icon>refresh</mat-icon>
+                Pokušaj ponovo
+              </button>
             </div>
           }
 
@@ -457,6 +469,52 @@ interface CalendarDay {
         margin-top: 8px;
         font-size: 13px;
       }
+
+      .loading-hint {
+        font-size: 11px;
+        color: #d6d3d1;
+      }
+    }
+
+    .error-slots {
+      text-align: center;
+      padding: 24px;
+      background: #fafaf9;
+      border-radius: 16px;
+      color: #a8a29e;
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: #d6d3d1;
+      }
+
+      p {
+        margin-top: 12px;
+        font-size: 13px;
+      }
+
+      .retry-btn {
+        margin-top: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 20px;
+        background: #1C1917;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 12px;
+        cursor: pointer;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+          color: white;
+        }
+      }
     }
 
     @keyframes spin {
@@ -709,6 +767,7 @@ export class ReservationComponent implements OnInit {
   selectedSlot: string | null = null;
   slots: TimeSlot[] = [];
   loadingSlots = false;
+  slotsError = false;
   isClosed = false;
   closedReason = '';
   guests = 2;
@@ -733,12 +792,14 @@ export class ReservationComponent implements OnInit {
   ngOnInit() {
     this.today.setHours(0, 0, 0, 0);
     this.buildCalendar();
-    this.loadMonthAvailability();
 
-    // Auto-select today
+    // Auto-select today and load slots first
     const todayStr = this.formatDate(this.today);
     this.selectedDate = todayStr;
     this.loadSlots(todayStr);
+
+    // Load month availability after a delay to not overwhelm the API on cold start
+    setTimeout(() => this.loadMonthAvailability(), 2000);
   }
 
   prevMonth() {
@@ -802,30 +863,34 @@ export class ReservationComponent implements OnInit {
   }
 
   loadMonthAvailability() {
-    const todayStr = this.formatDate(this.today);
+    // Use calendar endpoint to get all days at once instead of individual requests
+    const firstDay = new Date(this.currentYear, this.currentMonth, 1);
+    const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
+    const startDate = this.formatDate(firstDay);
+    const endDate = this.formatDate(lastDay);
 
-    this.calendarDays.forEach(day => {
-      if (day.status === 'disabled' || day.status === 'past') return;
+    this.apiService.getCalendarStatus(startDate, endDate).subscribe({
+      next: (data) => {
+        if (!data || data.length === 0) return;
 
-      this.apiService.getAvailableSlots(day.dateStr).subscribe({
-        next: (data) => {
-          if (data.isClosed) {
+        data.forEach((dayData: any) => {
+          const day = this.calendarDays.find(d => d.dateStr === dayData.date);
+          if (!day || day.status === 'disabled' || day.status === 'past') return;
+
+          if (dayData.isClosed) {
             day.status = 'closed';
+          } else if (dayData.availableSlots === 0) {
+            day.status = 'full';
+          } else if (dayData.availableSlots < dayData.totalSlots / 2) {
+            day.status = 'limited';
           } else {
-            const allSlots = data.allSlots || data.slots || [];
-            const availableSlots = allSlots.filter(s => s.available > 0).length;
-            const totalSlots = allSlots.length || 12;
-
-            if (availableSlots === 0) {
-              day.status = 'full';
-            } else if (availableSlots < totalSlots / 2) {
-              day.status = 'limited';
-            } else {
-              day.status = 'available';
-            }
+            day.status = 'available';
           }
-        }
-      });
+        });
+      },
+      error: () => {
+        // Silently fail - days will remain as 'available'
+      }
     });
   }
 
@@ -843,12 +908,14 @@ export class ReservationComponent implements OnInit {
 
   loadSlots(dateStr: string) {
     this.loadingSlots = true;
+    this.slotsError = false;
     this.isClosed = false;
     this.slots = [];
 
     this.apiService.getAvailableSlots(dateStr).subscribe({
       next: (data) => {
         this.loadingSlots = false;
+        this.slotsError = false;
         if (data.isClosed) {
           this.isClosed = true;
           this.closedReason = data.reason || '';
@@ -858,7 +925,7 @@ export class ReservationComponent implements OnInit {
       },
       error: () => {
         this.loadingSlots = false;
-        this.snackBar.open('Greška pri učitavanju termina', 'OK', { duration: 3000 });
+        this.slotsError = true;
       }
     });
   }
