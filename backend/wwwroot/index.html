@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aura | Fine Dining Zagreb</title>
     <script>
-        // Detekcija mobilnog uređaja - preusmjeri na Flutter app
+        // Detekcija mobilnog uređaja - preusmjeri na Angular app
         (function() {
             var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobile) {
-                window.location.href = 'https://aura-70xy.onrender.com';
+                window.location.href = '/mobile-angular/';
             }
         })();
     </script>
@@ -49,21 +49,21 @@
     <nav class="fixed w-full z-50 flex justify-between items-center px-8 py-6 mix-blend-difference text-white">
         <span class="text-xl tracking-[0.5em] uppercase font-light">Aura</span>
         <div class="space-x-8 text-[10px] uppercase tracking-[0.2em] hidden md:block">
-            <a href="menu.html" class="hover:opacity-50 transition">Menu</a>
-            <a href="reservation.html" class="hover:opacity-50 transition">Rezervacija</a>
-            <a href="contact.html" class="hover:opacity-50 transition">Kontakt</a>
+            <a href="menu.html" class="hover:opacity-50 transition" data-i18n="menu">Menu</a>
+            <a href="reservation.html" class="hover:opacity-50 transition" data-i18n="reservation">Rezervacija</a>
+            <a href="contact.html" class="hover:opacity-50 transition" data-i18n="contact">Kontakt</a>
         </div>
     </nav>
 
     <section class="relative h-screen w-full overflow-hidden flex items-center justify-center">
-        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=2070" 
+        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=2070"
              class="absolute inset-0 w-full h-full object-cover scale-105" alt="Restaurant Interior">
         <div class="absolute inset-0 hero-gradient"></div>
-        
+
         <div class="relative text-center text-white px-4 reveal">
-            <p class="text-[10px] uppercase tracking-[0.5em] mb-4 opacity-80">Zagreb — Sezona 2026</p>
-            <h1 class="text-5xl md:text-7xl font-light tracking-tighter mb-8 italic">Okusi tišine.</h1>
-            <a href="reservation.html" class="inline-block border border-white px-10 py-4 text-[10px] uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500">
+            <p class="text-[10px] uppercase tracking-[0.5em] mb-4 opacity-80" data-i18n="season">Zagreb — Sezona 2026</p>
+            <h1 class="text-5xl md:text-7xl font-light tracking-tighter mb-8 italic" data-i18n="heroTitle">Okusi tišine.</h1>
+            <a href="reservation.html" class="inline-block border border-white px-10 py-4 text-[10px] uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500" data-i18n="ctaButton">
                 Rezervirajte svoj stol
             </a>
         </div>
@@ -71,17 +71,17 @@
 
     <section class="max-w-6xl mx-auto px-8 py-32 grid md:grid-cols-2 gap-20 items-center">
         <div class="space-y-8">
-            <h2 class="text-[10px] uppercase tracking-[0.4em] text-stone-400">Filozofija</h2>
-            <h3 class="text-3xl font-light leading-snug">Minimalizam na tanjuru, <br>maksimalizam u okusu.</h3>
-            <p class="text-stone-500 font-light leading-relaxed text-sm">
+            <h2 class="text-[10px] uppercase tracking-[0.4em] text-stone-400" data-i18n="philosophy">Filozofija</h2>
+            <h3 class="text-3xl font-light leading-snug" data-i18n="philosophyTitle">Minimalizam na tanjuru, <br>maksimalizam u okusu.</h3>
+            <p class="text-stone-500 font-light leading-relaxed text-sm" data-i18n="philosophyText">
                 Aura nije samo restoran, već putovanje kroz osjetila. Svaka namirnica u sezoni 2026. pažljivo je odabrana s lokalnih OPG-ova, tretirana s poštovanjem i pretvorena u umjetnost.
             </p>
-            <div class="pt-4 text-[10px] uppercase tracking-[0.2em] font-medium border-b border-stone-200 inline-block pb-1 cursor-pointer hover:border-stone-800 transition">
+            <div class="pt-4 text-[10px] uppercase tracking-[0.2em] font-medium border-b border-stone-200 inline-block pb-1 cursor-pointer hover:border-stone-800 transition" data-i18n="exploreStory">
                 Istražite našu priču
             </div>
         </div>
         <div class="relative h-[500px] overflow-hidden rounded-sm shadow-2xl">
-            <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=1974" 
+            <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=1974"
                  class="w-full h-full object-cover" alt="Fine Dining Plate">
         </div>
     </section>
@@ -92,19 +92,19 @@
                 <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=1887"
                      class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="Detail">
             </div>
-            <div class="h-80 overflow-hidden flex items-center justify-center p-8 bg-white text-center italic font-light text-xl">
+            <div class="h-80 overflow-hidden flex items-center justify-center p-8 bg-white text-center italic font-light text-xl" data-i18n="quote">
                 "Hrana koja priča priču o zemlji, moru i ljudima."
             </div>
             <div class="h-80 overflow-hidden group">
-                <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&q=80&w=2070" 
+                <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&q=80&w=2070"
                      class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="Detail">
             </div>
         </div>
     </section>
 
     <footer class="py-32 text-center">
-        <h4 class="text-2xl font-light mb-10 tracking-widest uppercase">Pridružite nam se</h4>
-        <a href="reservation.html" class="bg-stone-900 text-white px-12 py-5 rounded-full text-[10px] uppercase tracking-[0.3em] hover:bg-stone-700 transition shadow-xl shadow-stone-200">
+        <h4 class="text-2xl font-light mb-10 tracking-widest uppercase" data-i18n="joinUs">Pridružite nam se</h4>
+        <a href="reservation.html" class="bg-stone-900 text-white px-12 py-5 rounded-full text-[10px] uppercase tracking-[0.3em] hover:bg-stone-700 transition shadow-xl shadow-stone-200" data-i18n="secureSpot">
             Osigurajte termin
         </a>
 
@@ -119,11 +119,13 @@
         </div>
 
         <div class="mt-12 text-[9px] text-stone-400 uppercase tracking-widest space-y-2">
-            <p>Trg Kralja Tomislava 1, Zagreb</p>
-            <p class="mt-4">Radno vrijeme: Utorak - Subota, 18:00 - 00:00</p>
-            <p class="mt-4">&copy; 2026 Aura Fine Dining</p>
+            <p data-i18n="address">Trg Kralja Tomislava 1, Zagreb</p>
+            <p class="mt-4" data-i18n="hours">Radno vrijeme: Utorak - Subota, 18:00 - 00:00</p>
+            <p class="mt-4" data-i18n="copyright">&copy; 2026 Aura Fine Dining</p>
         </div>
     </footer>
 
+    <!-- i18n Script -->
+    <script src="/js/i18n.js"></script>
 </body>
 </html>
