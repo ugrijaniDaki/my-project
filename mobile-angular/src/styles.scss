@@ -1,0 +1,67 @@
+@use '@angular/material' as mat;
+
+// Import Inter font
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap');
+
+// Custom Aura theme using M3
+html {
+  height: 100%;
+
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$cyan-palette,
+      tertiary: mat.$orange-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+body {
+  color-scheme: light;
+  background-color: #fafaf9;
+  color: #1C1917;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  margin: 0;
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Global styles
+* {
+  box-sizing: border-box;
+}
+
+// Material Dialog fullscreen
+.fullscreen-dialog {
+  .mat-mdc-dialog-container {
+    padding: 0 !important;
+    border-radius: 0 !important;
+
+    .mdc-dialog__surface {
+      border-radius: 0 !important;
+    }
+  }
+}
+
+// Snackbar styling
+.success-snackbar {
+  --mdc-snackbar-container-color: #1C1917;
+  --mdc-snackbar-supporting-text-color: white;
+}
+
+// Bottom sheet styling
+.mat-bottom-sheet-container {
+  padding: 0 !important;
+  border-top-left-radius: 32px !important;
+  border-top-right-radius: 32px !important;
+}
+
+// Hide scrollbar but allow scrolling
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}

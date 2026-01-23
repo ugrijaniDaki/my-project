@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8">
+  <title>Aura | Fine Dining Zagreb</title>
+  <base href="/mobile-angular/">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Aura Fine Dining - Ekskluzivno gastronomsko iskustvo u srcu Zagreba">
+  <meta name="theme-color" content="#1C1917">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="manifest" href="manifest.webmanifest">
+  <style>
+    body {
+      margin: 0;
+      background: #fafaf9;
+      font-family: 'Inter', sans-serif;
+    }
+    .app-loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #fafaf9;
+    }
+    .app-loading-logo {
+      font-size: 24px;
+      font-weight: 300;
+      letter-spacing: 0.5em;
+      color: #1C1917;
+      margin-bottom: 24px;
+    }
+    .app-loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #e5e5e5;
+      border-top-color: #1C1917;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <app-root>
+    <div class="app-loading">
+      <div class="app-loading-logo">AURA</div>
+      <div class="app-loading-spinner"></div>
+    </div>
+  </app-root>
+  <noscript>Molimo omogućite JavaScript za korištenje aplikacije.</noscript>
+</body>
+</html>
