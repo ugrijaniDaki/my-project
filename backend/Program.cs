@@ -24,8 +24,10 @@ var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 string connectionString;
 if (!string.IsNullOrEmpty(databaseUrl) && databaseUrl.StartsWith("postgresql://"))
 {
-    // Parse Neon style DATABASE_URL: postgresql://user:password@host/database?sslmode=require
-    var urlWithoutQuery = databaseUrl.Split('?')[0];
+    // Parse DATABASE_URL: postgresql://user:password@host/database?sslmode=require
+    var urlParts = databaseUrl.Split('?');
+    var urlWithoutQuery = urlParts[0];
+    var queryString = urlParts.Length > 1 ? urlParts[1] : "";
     var uri = new Uri(urlWithoutQuery);
     var database = uri.AbsolutePath.TrimStart('/');
 
@@ -46,8 +48,19 @@ if (!string.IsNullOrEmpty(databaseUrl) && databaseUrl.StartsWith("postgresql://"
         }
     }
 
-    connectionString = $"Host={uri.Host};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
-    Console.WriteLine($"Connecting to: {uri.Host}/{database} as {username}");
+    // Check for sslmode in query string
+    var sslMode = "Require"; // default for cloud databases
+    if (queryString.Contains("sslmode=disable"))
+    {
+        sslMode = "Disable";
+    }
+    else if (queryString.Contains("sslmode=prefer"))
+    {
+        sslMode = "Prefer";
+    }
+
+    connectionString = $"Host={uri.Host};Database={database};Username={username};Password={password};SSL Mode={sslMode};Trust Server Certificate=true";
+    Console.WriteLine($"Connecting to: {uri.Host}/{database} as {username} (SSL: {sslMode})");
 }
 else
 {
