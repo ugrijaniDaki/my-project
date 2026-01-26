@@ -491,6 +491,7 @@
     </div>
 
     <script>
+        const API_BASE_URL = 'https://api.aura.xyler.ai';
         let adminToken = null;
         const dayNames = ['Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', 'Petak', 'Subota', 'Nedjelja'];
         let weeklyScheduleData = [];
@@ -510,7 +511,7 @@
             const password = document.getElementById('loginPassword').value;
 
             try {
-                const response = await fetch('/api/auth/admin/login', {
+                const response = await fetch(`${API_BASE_URL}/api/auth/admin/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -566,7 +567,7 @@
 
         async function loadMenuItemsCount() {
             try {
-                const response = await fetch('/api/admin/menu', {
+                const response = await fetch(`${API_BASE_URL}/api/admin/menu`, {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
                 if (response.ok) {
@@ -589,7 +590,7 @@
             table.classList.add('hidden');
 
             try {
-                const response = await fetch('/api/reservations', {
+                const response = await fetch(`${API_BASE_URL}/api/reservations`, {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
 
@@ -645,7 +646,7 @@
             table.classList.add('hidden');
 
             try {
-                const response = await fetch('/api/users', {
+                const response = await fetch(`${API_BASE_URL}/api/users`, {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
 
@@ -682,7 +683,7 @@
             if (!confirm('Obrisati ovu rezervaciju?')) return;
 
             try {
-                const response = await fetch(`/api/reservations/${id}`, {
+                const response = await fetch(`${API_BASE_URL}/api/reservations/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
@@ -715,7 +716,7 @@
             table.classList.add('hidden');
 
             try {
-                const response = await fetch('/api/orders', {
+                const response = await fetch(`${API_BASE_URL}/api/orders`, {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
 
@@ -777,7 +778,7 @@
 
         async function updateOrderStatus(id, status) {
             try {
-                const response = await fetch(`/api/orders/${id}`, {
+                const response = await fetch(`${API_BASE_URL}/api/orders/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -802,7 +803,7 @@
             if (!confirm('Obrisati ovu narudžbu?')) return;
 
             try {
-                const response = await fetch(`/api/orders/${id}`, {
+                const response = await fetch(`${API_BASE_URL}/api/orders/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
@@ -820,7 +821,7 @@
             container.innerHTML = '<div class="text-center py-8 text-stone-500">Učitavanje...</div>';
 
             try {
-                const response = await fetch('/api/schedule');
+                const response = await fetch(`${API_BASE_URL}/api/schedule`);
                 if (!response.ok) throw new Error();
 
                 weeklyScheduleData = await response.json();
@@ -903,7 +904,7 @@
             const existingIndex = slots.findIndex(s => s.time === time);
 
             try {
-                const response = await fetch(`/api/admin/schedule/${dayIndex}/slots`, {
+                const response = await fetch(`${API_BASE_URL}/api/admin/schedule/${dayIndex}/slots`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -931,7 +932,7 @@
             try {
                 for (let i = 0; i < weeklyScheduleData.length; i++) {
                     const day = weeklyScheduleData[i];
-                    const response = await fetch(`/api/admin/schedule/${i}`, {
+                    const response = await fetch(`${API_BASE_URL}/api/admin/schedule/${i}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -968,7 +969,7 @@
             const container = document.getElementById('overridesList');
 
             try {
-                const response = await fetch('/api/admin/date-overrides', {
+                const response = await fetch(`${API_BASE_URL}/api/admin/date-overrides`, {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
 
@@ -1040,7 +1041,7 @@
             }
 
             try {
-                const response = await fetch('/api/admin/date-overrides', {
+                const response = await fetch(`${API_BASE_URL}/api/admin/date-overrides`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1068,7 +1069,7 @@
             if (!confirm('Ukloniti ovaj posebni datum?')) return;
 
             try {
-                const response = await fetch(`/api/admin/date-overrides/${id}`, {
+                const response = await fetch(`${API_BASE_URL}/api/admin/date-overrides/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
@@ -1118,7 +1119,7 @@
             grid.classList.add('hidden');
 
             try {
-                const response = await fetch('/api/admin/menu', {
+                const response = await fetch(`${API_BASE_URL}/api/admin/menu`, {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
 
@@ -1336,7 +1337,7 @@
             };
 
             try {
-                const url = itemId ? `/api/admin/menu/${itemId}` : '/api/admin/menu';
+                const url = itemId ? `${API_BASE_URL}/api/admin/menu/${itemId}` : `${API_BASE_URL}/api/admin/menu`;
                 const method = itemId ? 'PUT' : 'POST';
 
                 const response = await fetch(url, {
@@ -1389,7 +1390,7 @@
             };
 
             try {
-                const response = await fetch(`/api/admin/menu/${id}`, {
+                const response = await fetch(`${API_BASE_URL}/api/admin/menu/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1452,7 +1453,7 @@
             };
 
             try {
-                const response = await fetch(`/api/admin/menu/${id}`, {
+                const response = await fetch(`${API_BASE_URL}/api/admin/menu/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1487,7 +1488,7 @@
             if (!deleteItemId) return;
 
             try {
-                const response = await fetch(`/api/admin/menu/${deleteItemId}`, {
+                const response = await fetch(`${API_BASE_URL}/api/admin/menu/${deleteItemId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });

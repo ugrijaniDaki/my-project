@@ -7,7 +7,7 @@ import { User, RegisterRequest, LoginRequest, AuthResponse } from '../models/use
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly baseUrl = 'https://my-project-r5ce.onrender.com';
+  private readonly baseUrl = 'https://api.aura.xyler.ai';
   private readonly TOKEN_KEY = 'authToken';
   private readonly USER_KEY = 'authUser';
 

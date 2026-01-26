@@ -7833,7 +7833,7 @@ HB(a,b,c,d){return A.aGy(a,b,c,d)},
 aGy(a,b,c,a0){var s=0,r=A.J(t.bc),q,p=2,o=[],n,m,l,k,j,i,h,g,f,e,d
 var $async$HB=A.K(function(a1,a2){if(a1===1){o.push(a2)
 s=p}for(;;)switch(s){case 0:p=4
-i=A.dJ("https://my-project-r5ce.onrender.com/api/auth/register",0,null)
+i=A.dJ("https://api.aura.xyler.ai/api/auth/register",0,null)
 h=t.N
 g=A.ac(["Content-Type","application/json"],h,h)
 s=7
@@ -7880,7 +7880,7 @@ Hz(a,b){return A.aGx(a,b)},
 aGx(a,b){var s=0,r=A.J(t.bc),q,p=2,o=[],n,m,l,k,j,i,h,g,f,e,d
 var $async$Hz=A.K(function(c,a0){if(c===1){o.push(a0)
 s=p}for(;;)switch(s){case 0:p=4
-i=A.dJ("https://my-project-r5ce.onrender.com/api/auth/login",0,null)
+i=A.dJ("https://api.aura.xyler.ai/api/auth/login",0,null)
 h=t.N
 g=A.ac(["Content-Type","application/json"],h,h)
 s=7
@@ -7930,7 +7930,7 @@ break
 case 2:q=5
 o=t.N
 s=8
-return A.F(A.XP(A.dJ("https://my-project-r5ce.onrender.com/api/auth/logout",0,null),null,A.ac(["Authorization","Bearer "+A.j($.k8)],o,o)),$async$HA)
+return A.F(A.XP(A.dJ("https://api.aura.xyler.ai/api/auth/logout",0,null),null,A.ac(["Authorization","Bearer "+A.j($.k8)],o,o)),$async$HA)
 case 8:q=1
 s=7
 break
@@ -7952,7 +7952,7 @@ s=1
 break}p=4
 j=t.N
 s=7
-return A.F(A.as4(A.dJ("https://my-project-r5ce.onrender.com/api/auth/verify",0,null),A.ac(["Authorization","Bearer "+A.j($.k8)],j,j)),$async$rc)
+return A.F(A.as4(A.dJ("https://api.aura.xyler.ai/api/auth/verify",0,null),A.ac(["Authorization","Bearer "+A.j($.k8)],j,j)),$async$rc)
 case 7:n=b
 s=n.b===200?8:10
 break
@@ -8008,7 +8008,7 @@ s=1
 break}p=4
 i=t.N
 n=A.ac(["date",a,"time",d,"guests",b,"specialRequests",c],i,t.K)
-h=A.dJ("https://my-project-r5ce.onrender.com/api/reservations",0,null)
+h=A.dJ("https://api.aura.xyler.ai/api/reservations",0,null)
 i=A.ac(["Content-Type","application/json","Authorization","Bearer "+A.j($.k8)],i,i)
 s=7
 return A.F(A.XP(h,B.ai.u7(n,null),i),$async$Yq)
@@ -8045,7 +8045,7 @@ aGv(a){var s=0,r=A.J(t.bc),q,p=2,o=[],n,m,l,k,j
 var $async$Yr=A.K(function(b,c){if(b===1){o.push(c)
 s=p}for(;;)switch(s){case 0:p=4
 s=7
-return A.F(A.as4(A.dJ("https://my-project-r5ce.onrender.com/api/schedule/available/"+a,0,null),null),$async$Yr)
+return A.F(A.as4(A.dJ("https://api.aura.xyler.ai/api/schedule/available/"+a,0,null),null),$async$Yr)
 case 7:n=c
 if(n.b===200){l=n
 l=B.ai.jk(A.lI(A.lH(l.e)).dc(l.w),null)
@@ -8075,7 +8075,7 @@ aGw(a,b){var s=0,r=A.J(t.bc),q,p=2,o=[],n,m,l,k,j
 var $async$Ys=A.K(function(c,d){if(c===1){o.push(d)
 s=p}for(;;)switch(s){case 0:p=4
 s=7
-return A.F(A.as4(A.dJ("https://my-project-r5ce.onrender.com/api/schedule/calendar/"+a+"/"+b,0,null),null),$async$Ys)
+return A.F(A.as4(A.dJ("https://api.aura.xyler.ai/api/schedule/calendar/"+a+"/"+b,0,null),null),$async$Ys)
 case 7:n=d
 if(n.b===200){l=n
 l=B.ai.jk(A.lI(A.lH(l.e)).dc(l.w),null)
@@ -8104,7 +8104,7 @@ Yt(){var s=0,r=A.J(t.bc),q,p=2,o=[],n,m,l,k,j
 var $async$Yt=A.K(function(a,b){if(a===1){o.push(b)
 s=p}for(;;)switch(s){case 0:p=4
 s=7
-return A.F(A.as4(A.dJ("https://my-project-r5ce.onrender.com/api/menu",0,null),null),$async$Yt)
+return A.F(A.as4(A.dJ("https://api.aura.xyler.ai/api/menu",0,null),null),$async$Yt)
 case 7:n=b
 if(n.b===200){l=n
 l=B.ai.jk(A.lI(A.lH(l.e)).dc(l.w),null)
@@ -8133,7 +8133,7 @@ Yp(a,b,c,d,e){return A.aGt(a,b,c,d,e)},
 aGt(a,b,c,d,e){var s=0,r=A.J(t.bc),q,p=2,o=[],n,m,l,k,j,i,h,g
 var $async$Yp=A.K(function(f,a0){if(f===1){o.push(a0)
 s=p}for(;;)switch(s){case 0:p=4
-k=A.dJ("https://my-project-r5ce.onrender.com/api/orders/guest",0,null)
+k=A.dJ("https://api.aura.xyler.ai/api/orders/guest",0,null)
 j=t.N
 i=A.ac(["Content-Type","application/json"],j,j)
 s=7

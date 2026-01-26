@@ -14,7 +14,7 @@ import {
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly baseUrl = 'https://my-project-r5ce.onrender.com';
+  private readonly baseUrl = 'https://api.aura.xyler.ai';
   private readonly TIMEOUT = 30000; // 30 seconds timeout
 
   constructor(private http: HttpClient) {}

@@ -5,3 +5,29 @@ appsettings.Development.json
 .vs/
 .DS_Store
 
+# Environment files with secrets
+.env
+*.env.local
+
+# Node modules
+node_modules/
+
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+
+# IDE
+.idea/
+*.iml
+
+# Mobile Angular build artifacts (will be rebuilt)
+mobile-angular/.angular/
+mobile-angular/dist/
+
+# Backups
+*.sql.backup
+*.dump
+

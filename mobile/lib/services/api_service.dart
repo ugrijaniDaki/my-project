@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // API SERVICE - Povezivanje s .NET backendom
 // ============================================
 class ApiService {
-  static const String baseUrl = 'https://my-project-r5ce.onrender.com';
+  static const String baseUrl = 'https://api.aura.xyler.ai';
   static String? _authToken;
   static String? _userName;
 
