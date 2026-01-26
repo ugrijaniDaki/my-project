@@ -58,6 +58,7 @@
           },
           "configurations": {
             "production": {
+              "baseHref": "/mobile-angular/",
               "budgets": [
                 {
                   "type": "initial",

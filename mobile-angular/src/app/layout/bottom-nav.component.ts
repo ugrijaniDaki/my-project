@@ -56,8 +56,10 @@ import { I18nService } from '../core/services/i18n.service';
       height: 70px;
       background: white;
       display: flex;
-      justify-content: space-around;
+      justify-content: space-between;
       align-items: center;
+      padding-left: 60px;
+      padding-right: 60px;
       box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
       border-top-left-radius: 24px;
       border-top-right-radius: 24px;
@@ -69,12 +71,15 @@ import { I18nService } from '../core/services/i18n.service';
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       gap: 4px;
-      padding: 8px 20px;
+      padding: 8px 0;
       text-decoration: none;
       color: #a8a29e;
       transition: all 0.2s ease;
       border-radius: 16px;
+      flex: 1;
+      text-align: center;
 
       mat-icon {
         font-size: 24px;
